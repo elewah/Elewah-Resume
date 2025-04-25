@@ -4,7 +4,7 @@ name: Build LaTeX Document
 
 on:
   push:
-    branches: [ main ]  # or 'master' if that's your default branch
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -13,20 +13,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up LaTeX environment
-      uses: teatimeguest/setup-texlive-action@v2
-      with:
-        packages: >-
-          latexmk
-          texlive-latex-recommended
-          texlive-latex-extra
-          texlive-fonts-recommended
-          texlive-science
-          texlive-bibtex-extra
-          texlive-lang-english
+    - name: Install TeX Live
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y texlive-full latexmk
 
     - name: Compile LaTeX to PDF
       run: |
