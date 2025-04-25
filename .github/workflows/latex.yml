@@ -4,9 +4,9 @@ name: Build LaTeX Document
 
 on:
   push:
-    branches: [ main ]
+    branches: [ network ]
   pull_request:
-    branches: [ main ]
+    branches: [ network ]
 
 jobs:
   build_latex:
