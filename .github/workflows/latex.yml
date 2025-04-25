@@ -25,8 +25,12 @@ jobs:
       run: |
         latexmk -pdf -interaction=nonstopmode -file-line-error main.tex
 
+    - name: Rename PDF to elewah_resume.pdf
+      run: |
+        mv main.pdf elewah_resume.pdf
+
     - name: Upload PDF Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: main-pdf
-        path: main.pdf
+        name: elewah-resume
+        path: elewah_resume.pdf
