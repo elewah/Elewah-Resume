@@ -34,3 +34,16 @@ jobs:
       with:
         name: elewah-resume
         path: elewah_resume.pdf
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Commit and Push Changes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git add elewah_resume.pdf
+        git commit -m "Auto-update generated file [skip ci]" || echo "Nothing to commit"
+        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
