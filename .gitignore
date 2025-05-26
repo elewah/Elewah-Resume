@@ -21,6 +21,9 @@
 *.fdb_latexmk
 *.synctex.gz
 *.nav
+*.aux
+# Ignore all untracked files
+
 *.snm
 *.vrb
 *.xdv
@@ -30,7 +33,7 @@
 
 
 # PDF output
-
+*.pdf
 # Backup files
 *~
 *.bak
