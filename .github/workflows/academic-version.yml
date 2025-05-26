@@ -46,4 +46,4 @@ jobs:
       run: |
         git add elewah_resume.pdf
         git commit -m "Auto-update generated file [skip ci]" || echo "Nothing to commit"
-        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
+        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git HEAD:academic
