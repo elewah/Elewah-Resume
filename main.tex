@@ -1,6 +1,10 @@
 \documentclass[10pt, letterpaper]{article}
+\newcommand{\position }{Software Engineering }
+\newcommand{\university }{Ontario Tech University}
+\newcommand{\department }{Faculty of Engineering and Applied Science }
 \usepackage{multicol}
 \usepackage{enumitem}
+\usepackage[numbers]{natbib}
 % Packages:
 \usepackage[
     ignoreheadfoot, % set margins without considering header and footer
@@ -24,7 +28,8 @@
     pdfauthor={Elewah},
     pdfcreator={LaTeX with RenderCV},
     colorlinks=true,
-    urlcolor=primaryColor
+    urlcolor=primaryColor,
+    citecolor=primaryColor
 ]{hyperref} % for links, metadata and bookmarks
 \usepackage[pscoord]{eso-pic} % for floating text on the page
 \usepackage{calc} % for calculating lengths
@@ -180,17 +185,17 @@
 
     \placelastupdatedtext
     \begin{header}
-        \fontsize{30 pt}{24 pt}
+        \fontsize{25 pt}{25 pt}
         \textbf{Abdelrahman Elewah}
 
-        \vspace{0.3 cm}
+        % \vspace{0.1 cm}
 
         \normalsize
         \mbox{{\footnotesize\faMapMarker*}\hspace*{0.13cm}Oshawa, Ontario, Canada}%
         \kern 0.25 cm%
         \AND%
         \kern 0.25 cm%
-        \mbox{\hrefWithoutArrow{mailto:abdelrahman.elewah@gmail.com}{{\footnotesize\faEnvelope[regular]}\hspace*{0.13cm}:abdelrahman.elewah@gmail.com}}%
+        \mbox{\hrefWithoutArrow{mailto:abdelrahman.elewah@ontariotechu.net}{{\footnotesize\faEnvelope[regular]}\hspace*{0.05cm}:abdelrahman.elewah@ontariotechu.net}}%
         \kern 0.25 cm%
         \AND%
         \kern 0.25 cm%
@@ -207,44 +212,59 @@
         \AND%
         \kern 0.25 cm%
         \mbox{\hrefWithoutArrow{https://github.com/elewah}{{\footnotesize\faGithub}\hspace*{0.13cm}elewah}}%
+        \kern 0.25 cm%
+          \AND%
+        \kern 0.25 cm%
+        \mbox{\hrefWithoutArrow{https://scholar.google.ca/citations?user=qkBGxZYAAAAJ&hl=en}{{\footnotesize\faGraduationCap}\hspace*{0.13cm}Google Scholar}}%
+
+        
     \end{header}
 
-    \vspace{-0.2 cm}
+    % \vspace{- 0.5 cm}
+    \section{Cover Letter}
+    Dear Hiring Committee,  \vspace{0.2cm}
+  
+    I am writing to express my interest in the \position position in the \department at Ontario Tech University. With a strong background in Electrical and Computer Engineering, I am eager to contribute to the learning environment.\vspace{0.2cm}
+    
+    As a Graduate Research Assistant at Ontario Tech University, I have been deeply involved in designing the SensorsConnect framework—World Wide Web for Internet of Things (IoT) and building Agentic Search Engine for real-time IoT data (ASE-IoT), leveraging large language models (LLM), retrieval-augmented generation (RAG), and Agentic AI systems. Also, I have taught various courses in the Department of Electrical, Computer, and Software Engineering, including Digital Systems, Circuit Analysis, Digital Communication, Embedded Systems, Systems Programming, Software Architecture, Introduction to Programming, Data Management Systems, and Operating Systems. \vspace{0.2cm}
+    
+    Additionally, I was a part-time assistant instructor for the Data Analytics Boot Camp at the University of Toronto School of Continuing Studies (U of T SCS), 2U. My responsibilities include supervising and leading teaching sessions covering data cleaning, data management, data visualization, and data analysis. I assist students in developing skills using advanced data analytics tools like SQL, NoSQL, and Python libraries such as SQLAlchemy, Pandas, Matplotlib, Plotly, NumPy, SciPy, Scikit-learn, Keras, Flask, and FastAPI, which are in demand and aligned with the data analytics positions. Additionally, they gain hands-on experience in web scraping with Selenium and using Tableau for data visualization. Finally, I guided students in applying all this knowledge to real-life projects. \vspace{0.2cm}
+    
+    Furthermore, I am passionate about connecting dots; for example, I'm developing a platform called Tamra IoT, which provides the Tamra IoT stack (IoT educational platform) to high school and STEM students with non-technical backgrounds. Tamra seeks to ease the process of building prototypes for IoT applications. With my partners, we got a seed fund to develop the idea prototype. I was lucky because I started pursuing my PhD in the IoT research lab at Ontario Tech University. Also, my research and startup have many common parts that help me connect the dots. Tamra provides a unified interface to integrate heterogeneous sensing devices, and SensorsConnect manages the search for real-time IoT data, leveraging the unified interface.\vspace{.2cm}
+    
+    I am excited to work in the educational environment of \university. I look forward to contributing to your innovative teaching and research initiatives. Thank you for considering my application. \vspace{.2cm}
+    
+    Sincerely, \vspace{.2cm}
+    
+    \textbf{Abdelrahman Elewah}
 
 
-    \section{Summary}
+
+    \section{Curriculum Vitae}
 
 
 
         
         \begin{onecolentry}
-    AI and Machine Learning Engineer with over 5 years of experience developing scalable AI and IoT systems. Expertise in LLMs, RAG, and real-time IoT data frameworks. Proven success in designing and implementing innovative solutions that connect AI with practical applications. Skilled in cloud-based platforms, e-commerce systems, and data analytics. Adept at collaborating with cross-functional teams to achieve impactful results.
+      Ph.D. graduate in Electrical and Computer Engineering with a focus on IoT, AI, and real-time data systems. Led the development of SensorsConnect and the Agentic IoT Search Engine, integrating LLMs and RAG. Experienced teaching assistant at Ontario Tech and 2U, data analytics/visualizations bootcamp at U of T, with a strong record in teaching and mentorship. Co-founded Tamra IoT to support STEM education through accessible IoT platforms. Published extensively in IEEE and driven by impactful, interdisciplinary research.
+            % AI \& Machine Learning Researcher with 7+ years of experience architecting scalable, real-time AI and IoT systems. Specialized in Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), and intelligent frameworks for real-time IoT data processing and search. Passionate about undergraduate education and advancing inclusive, impactful research in AI and Generative Systems. 
             %Legally eligible to work in Canada.
         \end{onecolentry}
 
-        % \vspace{0.2 cm}
+       
+        % \vspace{-0.2 cm}
 
         % \begin{onecolentry}
         %     The boilerplate content was inspired by \href{https://github.com/dnl-blkv/mcdowell-cv}{Gayle McDowell}.
         % \end{onecolentry}
-\section{Technologies}
-\vspace{-0.5cm}
-\begin{onecolentry}
-\item \textbf{LLM Frameworks \& Tools:} LangChain - LangGraph - LangSmith - RAG
-\item \textbf{Programming Languages:} Python - C/C++ - JavaScript
-\item \textbf{Web Technologies:} REST APIs - React - HTML - CSS - Bootstrap
-\item \textbf{Automation Tools:} Jenkins - GitLab CI/CD - GitHub Actions Workflow
-\item \textbf{Cloud \& Deployment:} AWS EC2 - AWS App Runner - Elastic Container Service - Elastic Beanstalk - CI/CD Pipelines
-\item \textbf{Database Systems:} PostgreSQL - MongoDB
-\item \textbf{DevOps Tools:} Docker - Kubernetes - Dev Containers
-\item \textbf{Development Environments:} GitHub - VS Code - Anaconda
-\end{onecolentry}
+    % \vspace{- 0.3 cm}
 
-        
-\vspace{-0.2 cm}
 \section{Experience}
 
 
+
+        
+      
         \begin{twocolentry}{
     Oshawa, ON
 
@@ -258,8 +278,29 @@
         \item Collaborated with \textbf{Eagle Aerospace} to prototype an \textbf{Aircraft Deceleration Early Warning System}, enhancing runway safety through predictive analytics and early alert mechanisms.
     \end{highlights}
 \end{twocolentry}
+        \vspace{0.1 cm}
 
-\vspace{0.3 cm}
+\begin{twocolentry}{
+            Toronto, ON
+
+        May 2019 – Jan 2024
+        }
+            \textbf{ Co-Founder(part-time)}Tamra-IoT,
+      \begin{highlights}
+    \item \textbf{Architected} secure and scalable \textbf{IoT platforms} by integrating \textbf{MQTT over TLS}, \textbf{cloud infrastructure}, and \textbf{mobile control interfaces}, enhancing real-time communication and remote device management.
+
+    \item \textbf{Collaborated} on \textbf{business management} and strategic planning, contributing to key decisions that optimized resource allocation, improved product direction, and accelerated go-to-market execution.
+
+    \item \textbf{Developed a curriculum} to teach \textbf{IoT concepts} to high school students, promoting early STEM engagement and empowering the next generation with practical, hands-on IoT experience.
+
+    \item \textbf{Designed} and deployed \textbf{Over-The-Air (OTA) firmware update mechanisms} and implemented \textbf{robust IoT device management systems}, significantly reducing maintenance costs and improving system resilience.
+\end{highlights}
+
+        \end{twocolentry}
+\vspace{-.2cm}
+
+    \section{Teaching Experience}
+
 \begin{twocolentry}{
     Remote
 
@@ -274,51 +315,79 @@
     \end{highlights}
 \end{twocolentry}
 
+    \vspace{0.1cm}
+         \begin{twocolentry}{
+            Oshawa, ON
+
+        Jan 2020 – Apr 2025
+        }
+            \textbf{Ontario Tech University}, Teaching Assistant (part-time)            \begin{highlights}
+            \item Conducted/Led tutorials in Electrical/Computer/Software Engineering courses:\\ \href{https://drive.google.com/drive/folders/1wTWJfskZvhS58ipwMDHabm2sUdHVQR6U?usp=sharing}{Student Course Feedback Reports}
+            \vspace{-0.5 cm}
+            \begin{multicols}{3}
+            \setlength{\itemsep}{20pt}
+            \begin{itemize}[leftmargin=*]
+                \item Digital Systems
+                \item Circuit Analysis
+                \item  Embedded Systems
+            \end{itemize}
+            
+            \columnbreak
+            
+            \begin{itemize}[leftmargin=*]
+                \item Systems Programming
+                \item Software Architecture
+                \item Soft.\&Computer Security
+            \end{itemize}
+            
+            \columnbreak
+            
+            \begin{itemize}[leftmargin=*]
+                \item Intro to Programming
+                \item Data Management Systems
+                \item Operating Systems
+            \end{itemize}
+            \end{multicols}
+            \end{highlights}
+        \end{twocolentry}
+     \vspace{-0.2 cm}
+ \begin{twocolentry}{
+            Benha, Egypt
+
+        Jan 2014 – Dec 2019
+        }
+            \textbf{Benha University}, Teaching Assistant           \begin{highlights}
+            \item Conducted/Led tutorials in Electrical and Computer Engineering courses:
+            \vspace{-0.5 cm}
+            \begin{multicols}{2}
+            \setlength{\itemsep}{20pt}
+            \begin{itemize}[leftmargin=*]
+                \item Computer Programming 
+                \item Computer Architecture
+            \end{itemize}
+            
+            \columnbreak
+            
+            \begin{itemize}[leftmargin=*]
+                \item Micro-processor-based systems
+                \item  Electrical and Electronics application
+
+            \end{itemize}
+            
+            \columnbreak
+            
+           
+            \end{multicols}
+            \end{highlights}
+        \end{twocolentry}
+    \vspace{-0.6 cm} 
+    % \section{Teaching Experience}
 
 
-%         \begin{twocolentry}{
-%             Toronto, ON
 
-%         Jan 2023 – Apr 2025
-%         }
-%             \textbf{Instructional Specialist (part-time)}, 2U 
+
+
     
-%             \begin{highlights}
-%     \item Contributed to the success of the \textbf{University of Toronto} 's online \textbf{Data Analytics Boot Camp} specializing in training data professionals.
-%     \item Assisted learners in acquiring essential \textbf{practical and technical skills} for modern data analysis:
-%     \begin{enumerate}
-%         % \item[-] \textbf{Excel:} Pivot tables, Forecasting, VBA scripting, Statistical modeling.
-%         \item[-] \textbf{Python Data Analytics:} APIs, NumPy, SciPy, Pandas, Matplotlib, TensorFlow, Keras, PyTorch.
-%         \item[-] \textbf{Databases:} MySQL, SQL, PostgreSQL/pgAdmin, MongoDB, \textbf{Extract, Transform, Load (ETL)} process.
-%         \item[-] \textbf{Web Visualizations:} HTML, CSS, Bootstrap framework, JavaScript charting, Geomapping with Leaflet.js.
-%         \item[-] \textbf{Advanced Data Analysis Topics:} Tableau, Data ethics, Hadoop, Machine Learning/Deep Learning.
-%     \end{enumerate}
-%     \item Guided learners through \textbf{real-world projects} tailored to industry sectors like \textbf{Finance}, \textbf{Human Resources}, \textbf{Healthcare}, and \textbf{Government}.
-% \end{highlights}
-
-%         \end{twocolentry}
-%      % \vspace{0.2 cm}
-% \begin{twocolentry}{
-%             Toronto, ON
-
-%         May 2019 – May 2024
-%         }
-%             \textbf{Tamra-IoT}, Co-Founder(part-time)
-%         \begin{highlights}
-%             \item Architected \textbf{IoT platforms} integrating \textbf{MQTT TLS}, \textbf{cloud services}, and \textbf{mobile control}.
-%             \item Collaborating on \textbf{business management} and strategic decision-making.
-%             \item Designed \textbf{OTA firmware updates} and implemented \textbf{robust IoT management solutions}.
-%         \end{highlights}
-
-%         \end{twocolentry}
-
-
-
-        % \vspace{-0.2 cm}
-
-  
-
-\vspace{-0.3cm}
     \section{Education}
 
 
@@ -336,13 +405,14 @@
         \end{threecolentry}
 
 \begin{threecolentry}{\textbf{MSc}}{
-           Feb 2013 – Jan 2018
+            Feb 2013 – Jan 2018
         }
             \textbf{Benha University}, Electrical Engineering
-            % \begin{highlights}
-            %     \item \textbf{Thesis:} Multi-modulation Low Earth Orbit Satellite Based on Software Defined Radio
-            %     % \item Implemented and tested Mth Root Mth Power SNR MPSK Estimator using USRP kit.
-            % \end{highlights}
+            \begin{highlights}
+                \item \textbf{Coursework:} Mathematics, Digital communication systems, Digital Signal Processing, Information theory, and Trends in Communication New Systems
+                \item \textbf{Thesis:} Multi-modulation Low Earth Orbit Satellite Based on Software Defined Radio
+                \item Implemented and tested Mth Root Mth Power SNR MPSK Estimator using USRP kit.
+            \end{highlights}
         \end{threecolentry}
 
 
@@ -352,17 +422,35 @@
              \textbf{Benha University}, Electrical Engineering
            \begin{highlights}
             \item \textbf{GPA:} 85\% \ (\textbf{3.3/4})
-            % \item \textbf{Capstone:} \textit{EagleEyes} – \textbf{Mine Detection System} using a \textbf{Quadcopter (Drone)}
+            \item \textbf{Capstone:} \textit{EagleEyes} – \textbf{Mine Detection System} using a \textbf{Quadcopter (Drone)}
         \end{highlights}
 
         \end{threecolentry}
 
 
 
-% \vspace{-0.4cm}
+\vspace{-.4cm}
     
     
-%     \section{Selected  Publications}
+    \section{List of  Publications}
+
+\begin{enumerate}[label={}]
+    \item \cite{elewah2025agentic} Abdelrahman Elewah and Khalid Elgazzar. \textbf{Agentic Search Engine for Real-Time IoT Data.} arXiv preprint arXiv:2503.12255, 2025.
+    
+    \item \cite{SensorsConnect} Abdelrahman Elewah and Khalid Elgazzar. \textbf{SensorsConnect Framework: World-Wide Web for Internet of Things.} IEEE Access, pages 1–1, 2024. doi: 10.1109/ACCESS.2024.3496892
+
+    \item \cite{Hossam2024} Hossameldin Ouda, Abdelrahman Elewah, and Khalid Elgazzar. \textbf{A Comparative Analysis of Data Models for Heterogeneous Sensor Data Management.} In 2024 International Wireless Communications and Mobile Computing (IWCMC), pages 1826–1833, 2024. doi: 10.1109/IWCMC61514.2024.10592594.
+
+    \item \cite{elgazzar2022revisiting} Khalid Elgazzar, Haytham Khalil, Taghreed Alghamdi, Ahmed Badr, Ghadeer Abdelkader, Abdelrahman Elewah, and Rajkumar Buyya. \textbf{Revisiting the Internet of Things: New Trends, Opportunities and Grand Challenges}, 2022.
+
+    \item \cite{PSaaS} Abdelrahman Elewah, Walid M. Ibrahim, and Khalid Elgazzar. \textbf{Paving the Way for Massive Public Sensing as a Service.} In 2022 IEEE 47th Conference on Local Computer Networks (LCN), pages 391–394, 2022. doi: 10.1109/LCN53696.2022.9843516.
+
+    \item \cite{ThingsDriver} Abdelrahman Elewah, Walid M. Ibrahim, Ahmed Rafıkl, and Khalid Elgazzar. \textbf{ThingsDriver: A Unified Interoperable Driver for IoT Nodes.} In 2022 International Wireless Communications and Mobile Computing (IWCMC), pages 877–882, May 2022. doi: 10.1109/IWCMC55113.2022.9824989.
+
+    \item \cite{elewah20213d} Abdelrahman Elewah, Abeer A. Badawi, Haytham Khalil, Shahryar Rahnamayan, and Khalid Elgazzar. \textbf{3D-RadViz: Three Dimensional Radial Visualization for Large-Scale Data Visualization.} In 2021 IEEE Congress on Evolutionary Computation (CEC), pages 1037–1046. IEEE, 2021.
+
+    \item \cite{elewah2018mth} Abdelrahman Elewah, Abdelkarim Taman, Amr A. Awamry, and Mahmoud Elbahy. \textbf{Mth Root Mth Power SNR MPSK Estimator.} In Mechatronics 2017: Recent Technological and Scientific Advances, pages 157–165. Springer, 2018.
+\end{enumerate}
 
 
 
@@ -380,7 +468,7 @@
 
         
 %             \end{twocolentry}
-% \vspace{0.40 cm}
+% \vspace{0.2 cm}
 %                         \begin{twocolentry}{
 %                 Nov 2024
 %             }
@@ -394,24 +482,67 @@
 
         
 %             \end{twocolentry}
-% \vspace{-0.20 cm}
-%             %                         \begin{twocolentry}{
-%             %     Jun 2021
-%             % }
-%             %     \textbf{3D-RadViz: Three dimensional radial visualization for large-scale data visualization} \href{https://ieeexplore.ieee.org/document/9504983}{CEC}
+% % \vspace{0.40 cm}
+%       \vspace{0.20 cm}
+%                                     \begin{twocolentry}{
+%                 Jun 2021
+%             }
+%                 \textbf{3D-RadViz: Three dimensional radial visualization for large-scale data visualization} \href{https://ieeexplore.ieee.org/document/9504983}{CEC}
 
-%             %     \vspace{0.10 cm}
-%             %     \mbox{\textbf{\textit{Abdelrahman Elewah}}}
-%             %     , \mbox{Abeer A Badawi}, \mbox{Haytham Khalil}, \mbox{Shahryar Rahnamayan}, \mbox{Khalid Elgazzar}
-%             %     \vspace{0.10 cm}
+          
+%                 \mbox{\textbf{\textit{Abdelrahman Elewah}}}
+%                 , \mbox{Abeer A Badawi}, \mbox{Haytham Khalil}, \mbox{Shahryar Rahnamayan}, \mbox{Khalid Elgazzar}
+%                 \vspace{0.10 cm}
 
         
-%             % \end{twocolentry}
+%             \end{twocolentry}
 %         \end{samepage}
+        
+% \vspace{-0.3cm}
+
+ \section{Technologies}
+\vspace{-0.6cm}
+\begin{onecolentry}
+\item \textbf{LLM Frameworks \& Tools:} LangChain - LangGraph - LangSmith - RAG
+\item \textbf{Programming Languages:} Python - C/C++ - JavaScript
+\item \textbf{Web Technologies:} REST APIs - React - HTML - CSS - Bootstrap
+\item \textbf{Automation Tools:} Jenkins - GitLab CI/CD - GitHub Actions Workflow
+\item \textbf{Cloud \& Deployment:} AWS EC2 - AWS App Runner - Elastic Container Service - Elastic Beanstalk - CI/CD Pipelines
+\item \textbf{Database Systems:} PostgreSQL - MongoDB - MySQL - NoSQL - SQL - Spark - Hadoop
+\item \textbf{DevOps Tools:} Docker - Kubernetes - Dev Containers
+\item \textbf{Development Environments:} GitHub - VS Code - Anaconda
+\end{onecolentry}
 
 
-    \vspace{-0.5cm}
-    \section{Projects}
+\vspace{-.2cm}
+    
+\section{Projects}
+
+
+\begin{twocolentry}{
+\href{https://github.com/SensorsConnect/IoT-Agentic-Search-Engine}{github.com/repo}
+}
+\textbf{Localelive: Agentic Search Engine for Real-Time IoT Data } \href{https://localelive.space/}{Live Demo}
+\begin{highlights}
+    \item \textbf{Developed} a real-time IoT search engine powered by \textbf{LLMs and RAG}, enabling users to query complex sensor data using natural language, improving query efficiency and decision making. %in real-time.
+    
+    \item \textbf{Implemented} a semantic search pipeline using \textbf{Sentence-BERT and HNSW indexing}, reducing query latency by 73\% and enhancing relevance in top-k retrieval across diverse IoT datasets.
+    
+    \item \textbf{Managed} over 37,000 real-time IoT documents from 500+ service types in \textbf{MongoDB} with geo-indexing, ensuring scalable and location-aware data access for time-sensitive decision-making.
+    
+    \item \textbf{Achieved} 92\% top-1 accuracy in complex intent detection and information retrieval, surpassing systems like Gemini, and significantly improving user satisfaction and task completion rates. %in usability tests.
+    
+    \item \textbf{Applied} in real-time urban scenarios—such as locating least-crowded clinics, nearest available parking, and lowest gas prices—demonstrating direct utility for smart city applications. 
+    
+    \item \textbf{Technologies:} Leveraged LangGraph, Tavily API, OpenRouteService, VectorDB, and Sentence-BERT to build a modular and extensible architecture for dynamic IoT data exploration and retrieval.
+
+    \item \textbf{Deployed} the system in \textbf{AWS} using \textbf{Docker Compose and Traefik} \href{https://dashboard.localelive.space/}{Traefik live dashboard}, enabling seamless container orchestration, automated HTTPS provisioning, and scalable reverse proxy management for reliable production-grade deployment.
+
+    
+\end{highlights}
+\end{twocolentry}
+
+
 
 
 \begin{twocolentry}{\href{https://github.com/elewah/Chatbot-Story-To-Movie}{github.com/repo}}
@@ -427,24 +558,6 @@
 
 
        
-\begin{twocolentry}{
-\href{https://github.com/SensorsConnect/IoT-Agentic-Search-Engine}{github.com/repo}
-}
-\textbf{IoT Agentic Search Engine} \href{https://iot-ase-demo-morning-brook-6041.fly.dev/IoT-ASE-Demo/chat}{Live Demo}
-\begin{highlights}
-    \item \textbf{Developed} a real-time IoT search engine powered by \textbf{LLMs and RAG}, enabling users to query complex sensor data using natural language, improving query efficiency and decision making in real-time.
-    
-    \item \textbf{Implemented} a semantic search pipeline using \textbf{Sentence-BERT and HNSW indexing}, reducing query latency by 73\% and enhancing relevance in top-k retrieval across diverse IoT datasets.
-    
-    \item \textbf{Managed} over 37,000 real-time IoT documents from 500+ service types in \textbf{MongoDB} with geo-indexing, ensuring scalable and location-aware data access for time-sensitive decision-making.
-    
-    \item \textbf{Achieved} 92\% top-1 accuracy in complex intent detection and information retrieval, surpassing systems like Gemini, and significantly improving user satisfaction and task completion rates in usability tests.
-    
-    \item \textbf{Applied} in real-time urban scenarios—such as locating least-crowded clinics, nearest available parking, and lowest gas prices—demonstrating direct utility for smart city applications. 
-    
-    \item \textbf{Technologies:} Leveraged LangGraph, Tavily API, OpenRouteService, VectorDB, and Sentence-BERT to build a modular and extensible architecture for dynamic IoT data exploration and retrieval.
-\end{highlights}
-\end{twocolentry}
 
 
 
@@ -481,7 +594,7 @@
 }
     \textbf{RadViz-Plotly}
     \begin{highlights}
-        \item \textbf{Developed} \textbf{RadViz-Plotly}, an \textbf{open-source Python package} that generates \textbf{2D and 3D Radial Visualization (RadViz)} plots for \textbf{high-dimensional datasets}, enabling broader accessibility to dimensionality reduction techniques in research and industry.
+        \item \textbf{Developed} \textbf{RadViz-Plotly}, an \textbf{open-source Python package} that generates \textbf{2D and 3D Radial Visualization (RadViz)} plots for \textbf{high-dimensional datasets}, enabling broader accessibility to dimensionality reduction techniques in research and industry. \href{https://ieeexplore.ieee.org/document/9504983}{publication}
         
         \item \textbf{Enabled} \textbf{data scientists} and analysts to explore and interpret \textbf{complex data distributions} interactively using \textbf{Plotly}, significantly improving \textbf{model explainability} and \textbf{decision-making} in analytics workflows.
         
@@ -490,15 +603,158 @@
 \end{twocolentry}
 
 
+% \vspace{-0.3cm}
+\section{Research Grants and Funding Secured}
+\begin{onecolentry}
+\begin{highlights}
+    \item \textbf{Bertelsmann Next Generation Tech Booster Scholarship} (2025):\\
+    Selected for a fully-funded \textbf{Generative AI Nanodegree Program} by Udacity and Bertelsmann, awarded to high-potential AI professionals worldwide.
+
+    \item \textbf{Doctoral Funding Package}, Ontario Tech University (2020--2023):\\
+    Competitive financial support totaling \textbf{\$132,800 CAD} over four years for Ph.D. studies in Electrical and Computer Engineering.
+
+    \item \textbf{Seed Funding -- InnoEgypt Program}, Egypt (2020):\\
+    Received \textbf{€12,500} in seed capital for the launch and growth of \href{https://tamra-iot.com}{Tamra IoT}, a platform simplifying IoT adoption for students, engineers, and makers.
+    
+
+\end{highlights}
+\end{onecolentry}
+
+% \vspace{-.3cm}
 
 
-% \section{Research Grants and Funding Secured}
-% \begin{highlights}
-% \item \textbf{Doctoral Funding Package}, Ontario Tech University (2020--2023):\\
-%   Competitive financial support totaling \textbf{\$132,800 CAD} over four years for Ph.D. studies in Electrical and Computer Engineering.
-% \item \textbf{Seed Funding – InnoEgypt Program}, Egypt (2020):\\
-%   Received \textbf{€12,500} in seed capital for the launch and growth of \href{https://tamra-iot.com/}{Tamra IoT}, a platform simplifying IoT adoption for students, engineers, and makers.
-% \end{highlights}
+
+
+
+% \vspace{1em}
+
+% \textbf{Abeer Badawi} \\
+% Postdoctoral Fellow\\
+% York University \\
+% {\hrefWithoutArrow{mailto:abeerbadawi@yorku.ca}{{\footnotesize\faEnvelope[regular]} :\hspace*{0.13cm}abeerbadawi@yorku.ca}}\\
+% \textit{Relationship:}  Co-author and Former Labmate
+
+% \bibliographystyle{IEEEtran}  % or plain, alpha, etc.
+% \bibliography{references} 
+\section{Statement of Teaching Philosophy}
+
+\subsection*{Introduction}
+From my perspective, teaching is most effective when it draws from real-life experiences—this is how we, as humans, naturally learn. In the classroom, I strive to create an engaging and interactive environment between the instructor and learners. This approach aligns with the evolution of education, especially in the context of STEM (Science, Technology, Engineering, and Mathematics), where the integration of these disciplines reflects a modern, interdisciplinary learning model. I believe that the most valuable lessons are those that prepare students for real-life challenges, and I have found that learning through hands-on activities and projects is the most effective way to simulate life experiences.
+
+
+\subsection*{Teaching Approach}
+Building on my teaching philosophy, I consistently strive to design activities and projects that align with specific learning objectives. However, this is not always an easy task. I believe that effective teaching often begins with the “cheese,” not the start of the mouse maze—in other words, it’s more impactful to begin with real-world applications rather than abstract theory. Instead of starting strictly from textbooks, I aim to show students where and how the concepts they’re learning are used in practice. This reinforces my belief that learning through lived experience is often more meaningful than learning through narratives alone.
+
+\subsection*{Ontario Tech University, Teaching Assistant}
+\textbf{Duration}: Jan 2020 – Apr 2025 \\
+I have been teaching in the Department of Electrical, Computer, and Software Engineering at Ontario Tech University since January 2020. During this time, I have been assigned to teach up to ten different courses, including Circuit Analysis, Embedded Systems, Systems Programming, Software Architecture, Software and Computer Security, Introduction to Programming, Data Management Systems, and Operating Systems. While frequently changing the courses I teach can be challenging, student evaluations consistently reflect their appreciation and enjoyment of my tutorials and labs. Although I could request to teach the same courses each semester, I viewed the variety as an opportunity to broaden my knowledge and enhance my teaching versatility.
+\vspace{0.2cm}
+\subsection*{2U, University of Toronto,  Boot Camp Assistant Instructor}
+
+\textbf{Duration}: Jan 2023 – Mar 2025 \\
+I have assisted in teaching three cohorts of students in data visualization boot camp, with average success rates of 92\% on average. In each course cohort, 2-3 students were placed in professional positions before the end of the course, which shows that the life skills used throughout the course impacted the students. Connecting theories and practical skills with real-world projects, such as identifying bike rental patterns in Toronto, allows students to go beyond learning the theories by engaging with industry-based applications. Hence, the instructional specialist team achieved an average satisfaction rate of 4.5 out of 5 in student surveys, clearly demonstrating the positive impact and added value of my teaching.
+
+% \vspace{-0.3cm}
+% \section*{Evidence of Teaching Effectiveness and Outcomes}
+
+My teaching methods are recognized with positive feedback, and students thoroughly grasp the complex analytical and data science concepts. The outcomes to support the effectiveness of my teaching approach are as follows:
+\begin{itemize}
+    \item   Students in the Data Analytics boot camp complete 4 project spares in 6 months, from finding patterns and visualizing them using the data visualization approach to training and deploying Machine learning/ Deep Learning models to carry on prediction tasks. That reflects the success of these teaching strategies, even with learners without engineering backgrounds.
+    \item By focusing on real-world applications and critical thinking, students leave The boot camp program with the technical skills and the judgment needed to excel in data-driven roles.
+
+\end{itemize}
+
+
+
+
+% \section*{Assessment and Feedback}
+% I consider assessment a tool for growth rather than judgment. My evaluation strategy includes practical assignments, real-world projects, and open-ended problem-solving tasks that align with course objectives. I provide constructive, timely feedback that highlights strengths while identifying areas for improvement. Students are encouraged to iterate on their work, promoting a mindset of continuous improvement and resilience.
+\vspace{-0.3cm}
+\subsection*{Professional Growth and Reflection}
+I firmly believe in the statement: \textit{there is always a better solution than the existing one; our role as scientists and engineers is to search for it.} This mindset keeps me in a constant state of improvement, continuously steering my research toward the frontiers of knowledge. My curiosity drives me to explore new worlds and concepts. I began my engineering journey close to the physical layer—Electronics and Communications. Over time, I transitioned into the realms of IoT and AI/ML. Before completing my PhD thesis, I discovered that Generative AI could help solve the core problem of my research: building a Search Engine for Real-time IoT Data. \vspace{0.2cm}
+
+Last summer, I was assigned to train an intern, \href{https://www.linkedin.com/feed/update/urn:li:activity:7244884349811126272/}{Mostafa} , a first-year undergraduate student. Aiming to maximize his exposure to the world of development, I adopted a novel training approach tailored to his beginner-level programming skills. Over the course of his 4-month internship, Mostafa successfully redeveloped our \href{https://iotresearchlab.ca/}{IoT Research Lab website} \href{https://iotresearchlab.github.io/}{(new version)} and gained hands-on experience with Version Control (GitHub), Front-End Web Development (React), Back-End Development (Node.js), and Database Management (Firebase \& MongoDB). This experience reinforced my belief that we can—and should—continuously explore new teaching strategies that maximize knowledge transfer.
+
+\section{Research Statement}
+
+% Introduction
+\subsection*{Introduction}
+My research lies at the intersection of artificial intelligence (AI), machine learning (ML), and the Internet of Things (IoT), with a specific focus on developing search engines for real-time IoT data, leveraging SensorsConnect \cite{SensorsConnect}: World Wide Web for IoT. By combining advanced machine learning techniques with domain knowledge, I aim to improve decision-making in real time. My overarching goal is to contribute to the next generation of AI systems that positively impact human health and well-being.	
+\subsection*{Current Research and Past Research}
+The Internet of Things (IoT) has reshaped human life through the growing number of connected things. Several domains have leveraged the implementation of the IoT, from home appliances and wearable devices to intelligent transportation and logistics systems. By the end of 2030,29 billion IoT devices \cite{explodingtopics2024iot}, two times the number of devices installed today, will be connected to the internet. IoT devices are the nodes between the physical and digital domains. Conceptually, IoT devices \cite{elgazzar2022revisiting} act either as data sources—collecting real-time sensor readings—or as data sinks, executing actions based on received data. Therefore, they have become the primary real-time data sources/drains that represent a paradigm shift in real-time decision-making systems. Based on these statistics \cite{explodingtopics2024iot}, the data generated or consumed by IoT devices will exponentially grow in the coming years. As a result, the demand for a real-time search engine for the collected IoT data will increase to keep pace with the needs of real-time decision-making. \vspace{0.2cm}
+
+
+However, there is no search engine for real-time IoT data. My PhD thesis explored the barriers preventing the development of IoT search engines and identifies three main challenges. First, the fragmentation of IoT systems has shaped intra-nets of things similar to the Web in its infancy days. Second, the heterogeneity of sensing devices and IoT protocols makes integrating the existing sensing devices hard. Third, assuming integrating sensing devices by providing interfaces for the commonly used IoT protocols, the heterogeneity of sensing data poses another hurdle. \vspace{0.2cm}
+The research goal of my PhD thesis is to introduce a search engine for real-time sensing data. While exploring the existing sensing approaches and the search engine algorithms, we found it unfeasible to create a search engine with the current fragmented IoT landscape. \vspace{0.2cm}
+
+If we look into the history of the Internet \cite{internet_history}, we can tell that it is about solving the heterogeneity across network layers. Since establishing the Advanced Research Projects Agency (ARPA), the Internet has passed through 3 milestones to be global: inventing the ethernet solves heterogeneity in the physical layer, Transmission Control Protocol/ Internet Protocol (TCP/IP) determines unified standards in transport and network layers, and finally, the Internet was officially adopted shaping the global network. The Internet was accessible by experts and scientists till Tim Berners-Lee \cite{www} introduced the World-Wide Web with the hyperlink feature and the purpose of sharing documents, which is considered a solution to the heterogeneity in the application layer and enables public users to access the Internet. Since then, we have experienced a dramatic growth in web content that created the need for web search engines. \vspace{0.2cm}
+
+Web pages shaped unstructured web content that posed the searching challenge. Web search engines \cite{brin1998anatomy} rely on the hyperlink feature to crawl through web pages so that they can cluster and index them accordingly. Hence, when a user queries for content, web search engines can apply ranking algorithms to hit the user's intent.  \vspace{0.2cm}
+
+Given the Internet's history of solving heterogeneity on each network layer and search engines, my PhD thesis enables searching for real-time IoT data relying on SensorsConnect \cite{SensorsConnect}, a framework mimicking the WWW. SensorsConnect was designed to natively support the search for real-time IoT data, avoiding the need to rely on complex algorithms like crawling. Instead, SensorsConnect enables the use of large language models (LLMs) and Retrieval Augment Generation  (RAG) Approaches via Agentic  \cite{elewah2025agentic} search Engine. 
+
+
+% Future Research Directions
+\subsection*{Future Research Directions}
+Building on my expertise in interpretable and resource-efficient AI, my future research will focus on two key areas:
+
+\begin{enumerate}[leftmargin=1.5em, label=\arabic*., itemsep=1em]
+    \item \textbf{Web for LLMs}: most LLMs now have tools to access web content in real-time, relying on scraping techniques. However, suppose we have a parallelized web framework for LLMs that fits their needs. In that case, we can increase the efficiency of these models in finding the relevant content. Scraping large amounts of data, often filled with irrelevant content, can be costly. Using a light web version allows LLMs to function more efficiently. 
+
+\item \textbf{Collaborative world for LLMs}:
+Assuming that LLMs become embedded within the web infrastructure, protocols for inter-agent collaboration will be vital. In this context, IoT systems can serve as intelligent agents, enabling coordination and data-sharing across applications. Most AI systems rely on our data, and we can mitigate exploiting user data by relying on a network of connected IoT systems. For instance, traffic status is estimated by the speed of the user's mobile devices, and we can estimate this by extracting the traffic flow using traffic cameras. Many applications can be applicable if we enable the World Wide Web for LLMs integrated into IoT systems.
+
+\end{enumerate}
+
+% Broader Impact and Collaboration
+% \section*{Broader Impact and Collaboration}
+% My research has significant implications for both LLM and IoT. By creating systems that are interpretable and accessible, I aim to bridge the gap between advanced technology and its practical application. 
+
+% At Vector Institute, I look forward to collaborating with faculty in the Department of Computer Science and the School of Medicine to advance interdisciplinary research. I am particularly excited about mentoring students to develop innovative projects that address real-world challenges.
+
+% Conclusion
+\subsection*{Conclusion}
+My commitment to building impactful systems began even before my doctoral studies. I was fortunate to participate in several business workshops where I acquired foundational entrepreneurial skills and wrote my first business plan. Alongside my partner, I secured seed funding to build a Minimum Viable Product (MVP) for our startup, Tamra IoT. This experience of leading a small, resource-constrained team taught me how to supervise effectively and innovate at the edge of emerging technologies. One of our key contributions, ThingsDriver \cite{ThingsDriver}, was inspired by the structure of HTML on the WWW and played a fundamental role in unifying the sensor data model of SensorsConnect. \vspace{0.2cm}
+ 
+Therefore, my research vision is closely aligned with the mission of \university, which emphasizes fostering innovation and generating meaningful societal impact. By bridging the gap between large language models (LLMs) and Internet of Things (IoT) systems, I aspire to contribute to the academic community and enhance the quality of life. I am enthusiastic about the opportunity to bring my expertise, collaborate with diverse teams, and mentor the next generation of scholars and innovators. 
+
+
+
+
+
+\bibliographystyle{unsrtnat}
+%\usepackage[numbers,sort&compress]{natbib}
+%% ***   Set the bibliography file.   ***
+%% ("thesis.bib" by default; change if needed)
+\bibliography{references}
+
+
+ 
+\section{Referees }
+
+
+\textbf{Dr. Khalid Elgazzar} \\
+Canada Research Chair \& Associate Professor \\
+Ontario Tech University \\
+{\hrefWithoutArrow{mailto:khalid.elgazzar@ontariotechu.ca}{{\footnotesize\faEnvelope[regular]} :\hspace*{0.13cm}khalid.elgazzar@ontariotechu.ca}}\\
+\textit{Relationship:} PhD Supervisor
+
+\vspace{0.5em}
+
+\textbf{Dr. Mohamed El-Darieby} \\
+Department Chair \& Associate Professor\\
+Ontario Tech University \\
+{\hrefWithoutArrow{mailto:mohamed.el-darieby@ontariotechu.ca}{{\footnotesize\faEnvelope[regular]} :\hspace*{0.13cm}mohamed.el-darieby@ontariotechu.ca}}\\
+\textit{Relationship:} Department Chair
+
+\vspace{0.5em}
+
+\textbf{Dr. Sanaa Alwidian} \\
+Associate Professor\\
+Ontario Tech University \\
+{\hrefWithoutArrow{mailto:sanaa.alwidian@ontariotechu.ca}{{\footnotesize\faEnvelope[regular]} :\hspace*{0.13cm}sanaa.alwidian@ontariotechu.ca}}\\
+\textit{Relationship:} Academic Advisor
+
 
 
 \end{document}
