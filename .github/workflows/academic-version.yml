@@ -1,4 +1,4 @@
-# File: .github/workflows/latex.yml
+# File: .github/workflows/academic-version.yml
 
 name: Build LaTeX Document
 
