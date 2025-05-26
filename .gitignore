@@ -24,6 +24,10 @@
 *.snm
 *.vrb
 *.xdv
+*.aux
+*.fdb_latexmk
+
+
 
 # PDF output
 
