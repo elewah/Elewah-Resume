@@ -17,11 +17,10 @@
 \usepackage[dvipsnames]{xcolor} % for coloring text
 \definecolor{primaryColor}{RGB}{0, 79, 144} % define primary color
 \usepackage{enumitem} % for customizing lists
-\usepackage{fontawesome5} % for using icons
 \usepackage{amsmath} % for math
 \usepackage[
-    pdftitle={Elewah's CV},
-    pdfauthor={Elewah},
+    pdftitle={Abdelrahman Elewah Resume},
+    pdfauthor={Abdelrahman Elewah},
     pdfcreator={LaTeX with RenderCV},
     colorlinks=true,
     urlcolor=primaryColor
@@ -45,7 +44,7 @@
     \usepackage{lmodern}
 \fi
 
-\usepackage[default, type1]{sourcesanspro} 
+\renewcommand{\familydefault}{\sfdefault}
 
 % Some settings:
 \AtBeginEnvironment{adjustwidth}{\partopsep0pt} % remove space before adjustwidth environment
@@ -72,7 +71,7 @@
 }{
     % print bold title, give 0.15 cm space and draw a line of 0.8 pt thickness
     % from the end of the title to the end of the body
-    \textbf{#1}\hspace{0.15cm}\titlerule[0.8pt]\hspace{-0.1cm}
+    \textbf{#1}\hspace{0.15cm}\leaders\hrule height 0.8pt\hfill\kern0pt
 }[] % section title formatting
 
 \titlespacing{\section}{
@@ -136,7 +135,7 @@
 \newenvironment{threecolentry}[3][]{
     \onecolentry
     \def\thirdColumn{#3}
-    \setcolumnwidth{1 cm, \fill, 4.5 cm}
+    \setcolumnwidth{1.2 cm, \fill, 4.5 cm}
     \begin{paracol}{3}
     {\raggedright #2} \switchcolumn
 }{
@@ -166,8 +165,8 @@
 % save the original href command in a new command:
 \let\hrefWithoutArrow\href
 
-% new command for external links:
-\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
+% Keep link text plain so ATS parsers do not extract icon glyphs.
+\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{#2}}
 
 
 \begin{document}
@@ -183,34 +182,34 @@
         \fontsize{30 pt}{24 pt}
         \textbf{Abdelrahman Elewah}
 
-        \vspace{0.3 cm}
+        \vspace{0.2 cm}
 
         \normalsize
-        \mbox{{\footnotesize\faMapMarker*}\hspace*{0.13cm}Oshawa, Ontario, Canada}%
+        \mbox{Oshawa, Ontario, Canada}%
         \kern 0.25 cm%
-        \AND%
+        |%
         \kern 0.25 cm%
-        \mbox{\hrefWithoutArrow{mailto:abdelrahman.elewah@gmail.com}{{\footnotesize\faEnvelope[regular]}\hspace*{0.13cm}:abdelrahman.elewah@gmail.com}}%
+        \mbox{\hrefWithoutArrow{mailto:abdelrahman.elewah@gmail.com}{abdelrahman.elewah@gmail.com}}%
         \kern 0.25 cm%
-        \AND%
+        |%
         \kern 0.25 cm%
-        \mbox{\hrefWithoutArrow{tel:+1 289-939-6665}{{\footnotesize\faPhone*}\hspace*{0.13cm}289 939 6665}}%
+        \mbox{\hrefWithoutArrow{tel:+1 289-939-6665}{+1 289-939-6665}}%
         \kern 0.25 cm%
-        \AND%
+        |%
         \kern 0.25 cm%
-        \mbox{\hrefWithoutArrow{https://elewah.github.io/}{{\footnotesize\faLink}\hspace*{0.13cm}elewah.github.io}}%
+        \mbox{\hrefWithoutArrow{https://elewah.github.io/}{Portfolio: elewah.github.io}}%
+        
+        \vspace{0.05 cm}
+        
+        \mbox{\hrefWithoutArrow{https://www.linkedin.com/in/abdelrahman-elewah/}{LinkedIn: linkedin.com/in/abdelrahman-elewah}}%
         \kern 0.25 cm%
-        \AND%
+        |%
         \kern 0.25 cm%
-        \mbox{\hrefWithoutArrow{https://www.linkedin.com/in/abdelrahman-elewah/}{{\footnotesize\faLinkedinIn}\hspace*{0.13cm}abdelrahman-elewah}}%
+        \mbox{\hrefWithoutArrow{https://github.com/elewah}{GitHub: github.com/elewah}}%
         \kern 0.25 cm%
-        \AND%
+        |%
         \kern 0.25 cm%
-        \mbox{\hrefWithoutArrow{https://github.com/elewah}{{\footnotesize\faGithub}\hspace*{0.13cm}elewah}}%
-        \kern 0.25 cm%
-        \AND%
-        \kern 0.25 cm%
-        \mbox{\hrefWithoutArrow{https://scholar.google.ca/citations?user=qkBGxZYAAAAJ&hl=en}{{\footnotesize\faGraduationCap}\hspace*{0.13cm}Google Scholar}}%
+        \mbox{\hrefWithoutArrow{https://scholar.google.ca/citations?user=qkBGxZYAAAAJ&hl=en}{Google Scholar}}%
     \end{header}
 
     \vspace{-0.3 cm}
@@ -222,46 +221,43 @@
 
         
     \begin{onecolentry}
- AI Integration Lead and Machine Learning Engineer specializing in designing and deploying scalable AI systems across enterprise and research environments. Currently leading AI and automation integration initiatives at MPAC, modernizing property assessment workflows through LLMs, RAG pipelines, and large vision models. Expertise in blueprint understanding, document intelligence, semantic search, and real-time IoT data frameworks. Proven ability to translate research-grade AI into production-ready systems, aligning technical innovation with organizational KPIs. Strong foundation in software engineering, cloud-native architectures, and cross-functional leadership driving measurable digital transformation.
+ AI/ML Engineer with 5+ years of experience designing and deploying scalable machine learning, LLM, RAG, computer vision, and IoT systems. Currently leading AI integration at MPAC, building production data pipelines, document intelligence workflows, semantic search, and model deployment solutions with Python, LangGraph, FastAPI, PostgreSQL, Docker, and AWS. Strong background translating research prototypes into reliable software systems aligned with business KPIs.
     \end{onecolentry}
 
 
-        \vspace{-0.3 cm}
+        \vspace{-0.2 cm}
 
         % \begin{onecolentry}
         %     The boilerplate content was inspired by \href{https://github.com/dnl-blkv/mcdowell-cv}{Gayle McDowell}.
         % \end{onecolentry}
-\section{Technologies}
-\vspace{-0.5cm}
+\section{Technical Skills}
+% \vspace{-0.5cm}
 \begin{onecolentry}
-\item \textbf{LLM Frameworks \& Tools:} LangChain - LangGraph - LangSmith - RAG - Agentic AI - Docling - MinerU - MCP 
-\item \textbf{Programming Languages:} Python - C/C++ - JavaScript
-\item \textbf{Web Technologies:} REST APIs - React - HTML - CSS - Bootstrap - FastAPI - Flask
-\item \textbf{Automation Tools:} Jenkins - GitLab CI/CD - GitHub Actions Workflow
-\item \textbf{Cloud \& Deployment:} AWS EC2 - AWS App Runner - Elastic Container Service - Elastic Beanstalk - CI/CD Pipelines
-\item \textbf{Database Systems:} PostgreSQL - MongoDB - MySQL - NoSQL - SQL - Spark - Hadoop 
-\item \textbf{DevOps Tools:} Docker - Docker Compose - Kubernetes - Dev Containers
-\item \textbf{Development Environments:} GitHub - GitLab - VS Code - Anaconda
+\textbf{AI/ML and LLMs:} LLMs, RAG, Agentic AI, LangChain, LangGraph, LangSmith, Docling, MinerU, MCP, semantic search, computer vision, document intelligence, model deployment\\
+\textbf{Programming Languages:} Python, C/C++, JavaScript\\
+\textbf{Web and APIs:} FastAPI, Flask, REST APIs, React, HTML, CSS, Bootstrap\\
+\textbf{Cloud, MLOps, and DevOps:} AWS EC2, AWS App Runner, Amazon ECS, Docker, Docker Compose, Kubernetes, CI/CD, Jenkins, GitLab CI/CD, GitHub Actions\\
+\textbf{Data Systems:} PostgreSQL, MongoDB, MySQL, NoSQL, SQL, Spark, Hadoop\\
+\textbf{Development Tools:} GitHub, GitLab, VS Code, Anaconda, Dev Containers
 \end{onecolentry}
 
         
 \vspace{-0.2 cm}
-\section{Experience}
+\section{Professional Experience}
 
 \begin{twocolentry}{
     Pickering, ON 
 
     Jul 2025 – Present
 }
-    \textbf{Artificial Intelligence Integration Lead, MPAC}
+    \textbf{Artificial Intelligence Integration Lead}, MPAC
 
 
 \begin{highlights}
-    \item Lead enterprise-wide integration of \textbf{AI and automation solutions} across property assessment workflows, modernizing MPAC’s digital infrastructure and operational efficiency.
-    \item Architect and implement scalable \textbf{data pipelines} using Python, LangGraph, FastAPI, Docling, MinerU, PostgreSQL, and MCP servers to support intelligent \textbf{building plan parsing and document understanding}.
-    \item Design and deploy advanced \textbf{RAG (Retrieval-Augmented Generation)} systems for building plan understanding and semantic search aligned with MPAC assessment standards.
-    \item Integrate and optimize \textbf{large vision-language models (e.g., Qwen3-VL,  LayoutLMv3, PaddleOCR-VL, PP-StructureV3)} and other detection and segmentation models such as \textbf{RF-DETR} for architectural object detection, spatial reasoning, document layout understanding, and semantic segmentation.
-    \item Lead technical documentation, stakeholder presentations, and cross-team \textbf{knowledge transfer initiatives} to ensure sustainable AI adoption.
+    \item Lead enterprise AI and automation integration across property assessment workflows, improving digital operations through production-ready AI/ML systems.
+    \item Architect scalable data pipelines with Python, LangGraph, FastAPI, Docling, MinerU, PostgreSQL, and MCP servers for building plan parsing, document intelligence, and semantic search.
+    \item Design and deploy RAG systems for building plan understanding, retrieval workflows, and assessment-standard knowledge access.
+    \item Integrate vision-language models such as Qwen3-VL, LayoutLMv3, PaddleOCR-VL, and PP-StructureV3 with RF-DETR for computer vision, object detection, and layout understanding.
 \end{highlights}
 
 
@@ -278,9 +274,8 @@
     \textbf{Instructional Specialist (part-time)}, 2U / University of Toronto
 
     \begin{highlights}
-        \item Contributed to the success of the \textbf{University of Toronto} 's online \textbf{Data Analytics Boot Camp}, supporting 100+ learners in mastering practical skills for data-driven careers.
+        \item Contributed to the success of the \textbf{University of Toronto}'s online \textbf{Data Analytics Boot Camp}, supporting 100+ learners in mastering practical skills for data-driven careers.
         \item Facilitated hands-on workshops in \textbf{Python, Database, Machine Learning, and Data Visualization}, resulting in a \textbf{15\% increase} in student satisfaction scores.
-        \item Supported the deployment of \textbf{real-world capstone projects}, helping learners apply techniques in domains such as \textbf{healthcare, HR, and finance}.
     \end{highlights}
 \end{twocolentry}
 
@@ -294,9 +289,8 @@
     \textbf{Research Assistant}, Ontario Tech University
     \begin{highlights}
         \item Designed the \textbf{SensorsConnect} framework, enabling real-time \textbf{IoT device interoperability} and scalable data exchange, inspired by the principles of the \textbf{World Wide Web}. \href{https://ieeexplore.ieee.org/document/10752393}{Publication}
-        \item Developed an \textbf{Agentic IoT Search Engine (ASE-IoT)} that integrates \textbf{LLMs}, \textbf{RAG}, and autonomous agents to enable \textbf{natural language querying} of live IoT data, enhancing search precision and user interaction. \href{https://arxiv.org/abs/2503.12255}{publication}
-        \item Co-led an \textbf{OVIN-funded project} to develop \textbf{autonomous vehicle curriculums} and conduct applied research on \textbf{software-defined vehicles (SDVs)} and \textbf{digital twins}, contributing to workforce development in emerging mobility technologies.
-        \item Collaborated with \textbf{Eagle Aerospace} to prototype an \textbf{Aircraft Deceleration Early Warning System}, enhancing runway safety through predictive analytics and early alert mechanisms.
+        \item Developed an \textbf{Agentic IoT Search Engine (ASE-IoT)} that integrates \textbf{LLMs}, \textbf{RAG}, and autonomous agents to enable \textbf{natural language querying} of live IoT data, enhancing search precision and user interaction. \href{https://arxiv.org/abs/2503.12255}{Publication}
+        \item Co-led an \textbf{OVIN-funded project} on \textbf{software-defined vehicles (SDVs)} and \textbf{digital twins}, contributing to workforce development in emerging mobility technologies.
     \end{highlights}
 \end{twocolentry}
 
@@ -328,14 +322,9 @@
 
         May 2019 – Jan 2023
         }
-            \textbf{Back-End Developer(part-time)}Tamra-IoT,
+            \textbf{Back-End Developer (part-time)}, Tamra-IoT
       \begin{highlights}
     \item \textbf{Architected} secure and scalable \textbf{IoT platforms} by integrating \textbf{MQTT over TLS}, \textbf{cloud infrastructure}, and \textbf{mobile control interfaces}, enhancing real-time communication and remote device management.
-
-    \item \textbf{Collaborated} on \textbf{business management} and strategic planning, contributing to key decisions that optimized resource allocation, improved product direction, supported \textbf{mentorship}, and accelerated go-to-market execution.
-
-
-    \item \textbf{Developed a curriculum} to teach \textbf{IoT concepts} to high school students, promoting early STEM engagement and empowering the next generation with practical, hands-on IoT experience.
 
     \item \textbf{Designed} and deployed \textbf{Over-The-Air (OTA) firmware update mechanisms} and implemented \textbf{robust IoT device management systems}, significantly reducing maintenance costs and improving system resilience. \href{https://ieeexplore.ieee.org/abstract/document/9824989}{Publication}
 \end{highlights}
@@ -360,7 +349,6 @@
             \textbf{Ontario Tech University}, Electrical and Computer Engineering
             \begin{highlights}
                 \item GPA: 4.22/4.3 \href{https://learner.mycreds.ca/sharelink/f677e6e2-700e-4b53-a439-30bacbe9bde9/56c2684a-c6e8-480c-9fa4-93d6d649d3fe}{Link to Transcript issued by Ontario Tech University}
-                \item \textbf{Coursework:} Real-Time Data For IoT, Communication Networks, Knowledge Discovery \& Data Mining, Data Visualizations
                 \item \textbf{\href{https://ontariotechu.scholaris.ca/items/ae8fb02b-3cff-4738-aa4b-96834b35dc54/full}{Thesis}}: SensorsConnect: World Wide Web for Internet of Things.
             \end{highlights}
         \end{threecolentry}
@@ -441,13 +429,11 @@
 
 
     \vspace{-0.2cm}
-    \section{Selected Projects}
+    \section{Projects}
 
 
-\begin{twocolentry}{
-\href{https://github.com/SensorsConnect/IoT-Agentic-Search-Engine}{github.com/repo}
-}
-\textbf{Localelive: Agentic Search Engine for Real-Time IoT Data} \href{https://localelive.space/}{Live Demo}  \href{https://www.mdpi.com/1424-8220/25/19/5995}{publication}
+\begin{onecolentry}
+\textbf{Localelive: Agentic Search Engine for Real-Time IoT Data} | \href{https://github.com/SensorsConnect/IoT-Agentic-Search-Engine}{GitHub} | \href{https://localelive.space/}{Live Demo} | \href{https://www.mdpi.com/1424-8220/25/19/5995}{Publication}
 \begin{highlights}
     \item \textbf{Developed} a real-time IoT search engine powered by \textbf{LLMs and RAG}, enabling users to query complex sensor data using natural language, improving query efficiency and decision making. %in real-time.
     
@@ -456,30 +442,25 @@
     \item \textbf{Managed} over 37,000 real-time IoT documents from 500+ service types in \textbf{MongoDB} with geo-indexing, ensuring scalable and location-aware data access for time-sensitive decision-making.
     
     \item \textbf{Achieved} 92\% top-1 accuracy in complex intent detection and information retrieval, surpassing systems like Gemini, and significantly improving user satisfaction and task completion rates. %in usability tests.
-    
-    \item \textbf{Applied} in real-time urban scenarios—such as locating least-crowded clinics, nearest available parking, and lowest gas prices—demonstrating direct utility for smart city applications. 
-    
-    \item \textbf{Technologies:} FastAPI, Leveraged LangGraph, Tavily API, OpenRouteService, VectorDB, and Sentence-BERT to build a modular and extensible architecture for dynamic IoT data exploration and retrieval.
-
-    \item \textbf{Deployed} the system in \textbf{AWS} using \textbf{Docker Compose and Traefik} \href{https://dashboard.localelive.space/}{Traefik live dashboard}, enabling seamless container orchestration, automated HTTPS provisioning, and scalable reverse proxy management for reliable production-grade deployment.
+        
+    \item \textbf{Deployed} on \textbf{AWS} using FastAPI, LangGraph, Docker Compose, and Traefik for modular retrieval and production-grade orchestration.
 
     
 \end{highlights}
-\end{twocolentry}
+\end{onecolentry}
 
 
 
 
-\begin{twocolentry}{\href{https://github.com/elewah/Chatbot-Story-To-Movie}{github.com/repo}}
-\textbf{Story-to-Movie Recommender Chatbot (RAG-based)} \href{https://chatbot-story-to-movie.streamlit.app/}{Live demo}
+\begin{onecolentry}
+\textbf{Story-to-Movie Recommender Chatbot (RAG-based)} | \href{https://github.com/elewah/Chatbot-Story-To-Movie}{GitHub} | \href{https://chatbot-story-to-movie.streamlit.app/}{Live Demo}
 \begin{highlights}
 \item Developed a \textbf{retrieval-augmented generation (RAG)} system combining vector search with LLMs to deliver context-aware answers, reducing hallucination rates by \textbf{~30\%}.
 \item Built a \textbf{semantic search pipeline}, enabling retrievals from 1K+ documents.
-\item Fine-tuned user prompts and applied \textbf{prompt chaining} techniques to improve answer relevance, validated through user feedback and precision metrics.
 % \item Integrated with \texttt{Streamlit} for real-time web-based interaction; deployed with Docker for reproducibility across dev and prod environments.
 \item Leveraged \textbf{Pandas}, \textbf{OpenAI API}, and \textbf{Tenacity} to ensure resilient API usage and robust data handling under real-time loads.
 \end{highlights}
-\end{twocolentry}
+\end{onecolentry}
 
 
        
@@ -498,34 +479,28 @@
 % \end{twocolentry}
 
 
-\begin{twocolentry}{\href{https://github.com/elewah/Apply-Lightweight-Fine-Tuning-to-a-Foundation-Model}{github.com/repo}}
-\textbf{Apply Lightweight Fine-Tuning to a Foundation Model}
+\begin{onecolentry}
+\textbf{Apply Lightweight Fine-Tuning to a Foundation Model} | \href{https://github.com/elewah/Apply-Lightweight-Fine-Tuning-to-a-Foundation-Model}{GitHub}
 \begin{highlights}
 
 \item \textbf{Built} an end-to-end NLP pipeline using \textbf{PyTorch}, \textbf{TensorFlow} and \textbf{Hugging Face Transformers}: loaded a pre-trained \textbf{GPT-2} model and prepared the \textbf{AG News} dataset for news classification.
 
-\item \textbf{Applied} parameter-efficient fine-tuning (PEFT) using \textbf{LoRA adapters} to fine-tune GPT-2 while keeping the base model’s weights frozen, \textbf{reducing training time and memory usage by over 60\% compared to full fine-tuning}.
-
-\item \textbf{Achieved} a significant improvement: \textbf{boosted accuracy from 83.16\% to 88.95\%} on the AG News dataset using LoRA-fine-tuning, \textbf{demonstrating the effectiveness of PEFT in enhancing model performance with minimal compute}.
+\item \textbf{Applied} LoRA-based parameter-efficient fine-tuning (PEFT), reducing training time and memory usage by over 60\% while improving AG News accuracy from 83.16\% to 88.95\%.
 
 % \item \textbf{Built} a modular workflow: created training, PEFT fine-tuning, and inference pipelines in \textbf{Jupyter Notebooks}; containerized the project with \textbf{VSCode DevContainers} and \textbf{Docker}, \textbf{streamlining reproducibility and enabling seamless environment setup across systems}.
 
 \end{highlights}
-\end{twocolentry}
+\end{onecolentry}
 
 
-\begin{twocolentry}{
-    \href{https://github.com/elewah/RadViz-Plotly}{github.com/repo}
-}
-    \textbf{RadViz-Plotly}
+\begin{onecolentry}
+    \textbf{RadViz-Plotly} | \href{https://github.com/elewah/RadViz-Plotly}{GitHub}
     \begin{highlights}
-        \item \textbf{Developed} \textbf{RadViz-Plotly}, an \textbf{open-source Python package} that generates \textbf{2D and 3D Radial Visualization (RadViz)} plots for \textbf{high-dimensional datasets}, enabling broader accessibility to dimensionality reduction techniques in research and industry. \href{https://ieeexplore.ieee.org/document/9504983}{publication}
+        \item \textbf{Developed} \textbf{RadViz-Plotly}, an \textbf{open-source Python package} that generates \textbf{2D and 3D Radial Visualization (RadViz)} plots for \textbf{high-dimensional datasets}, enabling broader accessibility to dimensionality reduction techniques in research and industry. \href{https://ieeexplore.ieee.org/document/9504983}{Publication}
         
-        \item \textbf{Enabled} \textbf{data scientists} and analysts to explore and interpret \textbf{complex data distributions} interactively using \textbf{Plotly}, significantly improving \textbf{model explainability} and \textbf{decision-making} in analytics workflows.
-        
-        \item \textbf{Facilitated} deeper insights into \textbf{high-dimensional data} by revealing \textbf{hidden clusters, outliers, and trends}, increasing user engagement through intuitive visual interfaces.
+        \item \textbf{Enabled} data scientists to explore complex distributions interactively using \textbf{Plotly}, improving model explainability and analytics workflows.
     \end{highlights}
-\end{twocolentry}
+\end{onecolentry}
 
 
 
