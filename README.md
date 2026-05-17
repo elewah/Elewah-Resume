@@ -8,6 +8,7 @@ The score is a heuristic, not a guarantee from any applicant tracking system.
 
 - Compile LaTeX resumes with `latexmk` or `pdflatex`.
 - Analyze an existing PDF with `--pdf` and `--no-compile`.
+- Use a local Streamlit UI to upload `.tex` and `.pdf` files.
 - Extract PDF text with Poppler `pdftotext`.
 - Inspect page count, encryption, JavaScript, and metadata with `pdfinfo`.
 - Detect common ATS issues:
@@ -41,6 +42,12 @@ brew install poppler
 From this repository:
 
 ```sh
+./scripts/install.sh
+```
+
+Or install manually:
+
+```sh
 python3 -m pip install -e .
 ```
 
@@ -48,6 +55,12 @@ For development:
 
 ```sh
 python3 -m pip install -e ".[dev]"
+```
+
+For the optional Streamlit UI:
+
+```sh
+python3 -m pip install -e ".[ui]"
 ```
 
 Run the tests with the standard library:
@@ -87,6 +100,34 @@ Customize keywords:
 ```sh
 ats-check main.tex --keyword Python --keyword RAG --keyword "model deployment"
 ```
+
+## Streamlit UI
+
+The Streamlit UI is local-first and upload-only: it does not compile LaTeX. Upload the original `.tex` source and the matching generated `.pdf`; the app then runs the same ATS checks as the CLI using Poppler extraction.
+
+Start the UI:
+
+```sh
+./scripts/start-ui.sh
+```
+
+Or run Streamlit manually:
+
+```sh
+streamlit run app.py
+```
+
+The UI includes:
+
+- score and pass/warn/fail counts
+- actionable top fixes
+- detailed checks table
+- keyword coverage
+- PDF metadata
+- extracted text preview
+- Markdown, JSON, and extracted-text downloads
+
+The UI still requires Poppler tools (`pdftotext` and `pdfinfo`) to be installed.
 
 ## Example Output
 

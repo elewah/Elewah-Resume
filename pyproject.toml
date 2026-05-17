@@ -29,6 +29,7 @@ ats-check = "ats_resume_checker.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+ui = ["streamlit>=1.30"]
 
 [tool.setuptools.packages.find]
 include = ["ats_resume_checker*"]

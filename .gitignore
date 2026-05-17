@@ -1,42 +1,17 @@
-# LaTeX intermediate and output files
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+ats-report.md
+ats-report.json
+extracted-text.txt
 *.aux
-*.bbl
-*.blg
-*.brf
-*.idx
-*.ilg
-*.ind
-*.lof
-*.log
-*.lot
-*.out
-*.toc
-*.acn
-*.acr
-*.alg
-*.glg
-*.glo
-*.gls
+*.fdb_latexmk
 *.fls
-*.fdb_latexmk
+*.log
 *.synctex.gz
-*.nav
-*.snm
-*.vrb
-*.xdv
-*.aux
-*.fdb_latexmk
-
-
-
-# PDF output
-
-# Backup files
-*~
-*.bak
-*.backup
-
-# Editor swap/backup files
-*.swp
-*.swo
-*.tmp
