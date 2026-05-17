@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import tempfile
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -117,6 +118,12 @@ async def _run_agent_async(
     max_pages: int,
     keywords: list[str],
     api_key: str | None = None,
+    base_url: str | None = None,
+    aws_access_key_id: str | None = None,
+    aws_secret_access_key: str | None = None,
+    aws_profile: str | None = None,
+    aws_region: str = "us-east-1",
+    message_callback: Callable[[str], None] | None = None,
 ) -> AgentResult:
     try:
         from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage
@@ -141,9 +148,24 @@ async def _run_agent_async(
             initial_tex, extracted, pdf_info, max_pages=max_pages, keywords=keywords
         )
 
-        # Only pass env when an explicit API key is provided; otherwise let the
-        # claude CLI use its own authentication (claude.ai subscription, etc.).
-        extra_env: dict[str, str] = {"ANTHROPIC_API_KEY": api_key} if api_key else {}
+        extra_env: dict[str, str] = {}
+        if api_key:
+            extra_env["ANTHROPIC_API_KEY"] = api_key
+        if base_url:
+            extra_env["ANTHROPIC_BASE_URL"] = base_url.rstrip("/")
+            # LM Studio doesn't validate the key but the claude CLI requires a non-empty value.
+            extra_env.setdefault("ANTHROPIC_API_KEY", "lm-studio")
+        if aws_profile:
+            extra_env["CLAUDE_CODE_USE_BEDROCK"] = "1"
+            extra_env["AWS_PROFILE"] = aws_profile
+            extra_env["AWS_REGION"] = aws_region
+            extra_env["AWS_DEFAULT_REGION"] = aws_region
+        elif aws_access_key_id and aws_secret_access_key:
+            extra_env["CLAUDE_CODE_USE_BEDROCK"] = "1"
+            extra_env["AWS_ACCESS_KEY_ID"] = aws_access_key_id
+            extra_env["AWS_SECRET_ACCESS_KEY"] = aws_secret_access_key
+            extra_env["AWS_REGION"] = aws_region
+            extra_env["AWS_DEFAULT_REGION"] = aws_region
 
         options = ClaudeAgentOptions(
             system_prompt=_SYSTEM_PROMPT,
@@ -173,11 +195,19 @@ async def _run_agent_async(
                     for block in message.content:
                         if isinstance(block, TextBlock):
                             progress_messages.append(block.text)
+                            if message_callback is not None:
+                                message_callback(block.text)
         except Exception as sdk_exc:
-            # "error result: success" is a known SDK pattern: the claude CLI exits
-            # non-zero after a completed run. Check whether progress_messages contain
-            # a billing error before treating this as a graceful recovery.
-            if "error result: success" not in str(sdk_exc):
+            # Two known non-fatal patterns where the CLI exits non-zero but changes
+            # are already on disk:
+            #   "error result: success"    — CLI exits 1 after a completed run
+            #   "maximum number of turns"  — turn budget exhausted mid-run
+            exc_str = str(sdk_exc)
+            is_recoverable = (
+                "error result: success" in exc_str
+                or "maximum number of turns" in exc_str
+            )
+            if not is_recoverable:
                 raise
             combined = " ".join(progress_messages).lower()
             if any(kw in combined for kw in ("credit balance", "insufficient credit", "billing", "out of credit")):
@@ -187,13 +217,17 @@ async def _run_agent_async(
                     "• Add credits at console.anthropic.com\n"
                     "• Enter an Anthropic API key in the UI to use API credits instead"
                 ) from sdk_exc
-            # No billing signal — the CLI exited non-zero after a genuinely completed
-            # run (a known behaviour in some Claude Code versions). File changes are on
-            # disk so we collect results normally.
-            progress_messages.append(
-                "_Note: the agent completed but the CLI reported a non-zero exit. "
-                "Results below reflect the final state of the resume._"
-            )
+            # Recoverable exit — changes are on disk, collect results normally.
+            if "maximum number of turns" in exc_str:
+                progress_messages.append(
+                    "_Note: the agent reached its turn limit. Results below reflect the "
+                    "partial improvements made before the limit was hit. Increase 'Max iterations' to allow more work._"
+                )
+            else:
+                progress_messages.append(
+                    "_Note: the agent completed but the CLI reported a non-zero exit. "
+                    "Results below reflect the final state of the resume._"
+                )
 
         # Read final state from disk after the agent has finished.
         final_tex = tex_path.read_text(encoding="utf-8") if tex_path.exists() else initial_tex
@@ -240,12 +274,20 @@ def run_improvement_agent(
     max_pages: int = 2,
     keywords: list[str] | None = None,
     api_key: str | None = None,
+    base_url: str | None = None,
+    aws_access_key_id: str | None = None,
+    aws_secret_access_key: str | None = None,
+    aws_profile: str | None = None,
+    aws_region: str = "us-east-1",
+    message_callback: Callable[[str], None] | None = None,
 ) -> AgentResult:
     """Run the Claude Agent SDK resume improvement agent synchronously.
 
-    By default the claude CLI uses its own authentication (claude.ai login,
-    ANTHROPIC_API_KEY env var, etc.). Pass api_key to explicitly use Anthropic
-    API credits instead of claude.ai subscription credits.
+    Provider selection (mutually exclusive):
+    - Default: claude CLI uses its own auth (claude.ai subscription)
+    - api_key set: Anthropic API credits
+    - base_url set: local model via LM Studio (http://127.0.0.1:1234)
+    - aws_access_key_id + aws_secret_access_key set: AWS Bedrock
 
     Spawns a daemon thread so asyncio.run() always gets a clean event loop,
     which is safe regardless of whether Streamlit has its own loop running.
@@ -267,6 +309,12 @@ def run_improvement_agent(
                     max_pages=max_pages,
                     keywords=keywords or [],
                     api_key=api_key,
+                    base_url=base_url,
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    aws_profile=aws_profile,
+                    aws_region=aws_region,
+                    message_callback=message_callback,
                 )
             )
         except Exception as exc:

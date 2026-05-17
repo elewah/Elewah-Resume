@@ -127,6 +127,12 @@ The UI includes:
 - full extracted text view
 - Markdown, JSON, and extracted-text downloads
 
+### AI Agent
+
+Click **Run AI Agent** to let an AI assistant read the current ATS report and automatically apply fixes to the LaTeX source, then re-check the PDF. The UI shows the initial score, final score, improvement, and the agent's step-by-step reasoning.
+
+![AI Agent demo](assets/ai-agent-demo.png)
+
 The UI still requires Poppler tools (`pdftotext` and `pdfinfo`) to be installed.
 
 ## Example Output

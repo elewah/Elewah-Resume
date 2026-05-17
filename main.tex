@@ -1,5 +1,4 @@
 \documentclass[10pt, letterpaper]{article}
-\usepackage{multicol}
 \usepackage{enumitem}
 % Packages:
 \usepackage[
@@ -12,8 +11,6 @@
     % showframe % for debugging 
 ]{geometry} % for adjusting page geometry
 \usepackage[explicit]{titlesec} % for customizing section titles
-\usepackage{tabularx} % for making tables with fixed width columns
-\usepackage{array} % tabularx requires this
 \usepackage[dvipsnames]{xcolor} % for coloring text
 \definecolor{primaryColor}{RGB}{0, 79, 144} % define primary color
 \usepackage{enumitem} % for customizing lists
@@ -30,7 +27,7 @@
 \usepackage{bookmark} % for bookmarks
 \usepackage{lastpage} % for getting the total number of pages
 \usepackage{changepage} % for one column entries (adjustwidth environment)
-\usepackage{paracol} % for two and three column entries
+% paracol removed – replaced with minipage-based layout for ATS compatibility
 \usepackage{ifthen} % for conditional statements
 \usepackage{needspace} % for avoiding page brake right after the section title
 \usepackage{iftex} % check if engine is pdflatex, xetex or luatex
@@ -121,28 +118,26 @@
     \end{adjustwidth}
 } % new environment for one column entries
 
-\newenvironment{twocolentry}[2][]{
+\newenvironment{twocolentry}[2][]{%
     \onecolentry
-    \def\secondColumn{#2}
-    \setcolumnwidth{\fill, 4.5 cm}
-    \begin{paracol}{2}
-}{
-    \switchcolumn \raggedleft \secondColumn
-    \end{paracol}
+    \def\secondColumn{#2}%
+    \begin{minipage}[t]{\dimexpr\linewidth-4.7cm\relax}%
+}{%
+    \end{minipage}\hfill%
+    \begin{minipage}[t]{4.5cm}\raggedleft\secondColumn\end{minipage}%
     \endonecolentry
-} % new environment for two column entries
+} % new environment for two column entries (minipage-based, ATS-friendly)
 
-\newenvironment{threecolentry}[3][]{
+\newenvironment{threecolentry}[3][]{%
     \onecolentry
-    \def\thirdColumn{#3}
-    \setcolumnwidth{1.2 cm, \fill, 4.5 cm}
-    \begin{paracol}{3}
-    {\raggedright #2} \switchcolumn
-}{
-    \switchcolumn \raggedleft \thirdColumn
-    \end{paracol}
+    \def\thirdColumn{#3}%
+    \begin{minipage}[t]{1.1cm}\raggedright #2\end{minipage}\hspace{0.1cm}%
+    \begin{minipage}[t]{\dimexpr\linewidth-5.9cm\relax}%
+}{%
+    \end{minipage}\hfill%
+    \begin{minipage}[t]{4.5cm}\raggedleft\thirdColumn\end{minipage}%
     \endonecolentry
-} % new environment for three column entries
+} % new environment for three column entries (minipage-based, ATS-friendly)
 
 \newenvironment{header}{
     \setlength{\topsep}{0pt}\par\kern\topsep\centering\color{primaryColor}\linespread{1.5}
@@ -343,37 +338,28 @@
 
 
         
-        \begin{threecolentry}{\textbf{PhD}}{
+        \begin{twocolentry}{
             Jan 2020 – Mar 2025
         }
-            \textbf{Ontario Tech University}, Electrical and Computer Engineering
+            \textbf{PhD} \textbf{Ontario Tech University}, Electrical and Computer Engineering
             \begin{highlights}
                 \item GPA: 4.22/4.3 \href{https://learner.mycreds.ca/sharelink/f677e6e2-700e-4b53-a439-30bacbe9bde9/56c2684a-c6e8-480c-9fa4-93d6d649d3fe}{Link to Transcript issued by Ontario Tech University}
                 \item \textbf{\href{https://ontariotechu.scholaris.ca/items/ae8fb02b-3cff-4738-aa4b-96834b35dc54/full}{Thesis}}: SensorsConnect: World Wide Web for Internet of Things.
             \end{highlights}
-        \end{threecolentry}
+        \end{twocolentry}
 
-\begin{threecolentry}{\textbf{MSc}}{
+\begin{twocolentry}{
            Feb 2013 – Jan 2018
         }
-            \textbf{Benha University}, Electrical Engineering
-            % \begin{highlights}
-            %     \item \textbf{Thesis:} Multi-modulation Low Earth Orbit Satellite Based on Software Defined Radio
-            %     % \item Implemented and tested Mth Root Mth Power SNR MPSK Estimator using USRP kit.
-            % \end{highlights}
-        \end{threecolentry}
+            \textbf{MSc} \textbf{Benha University}, Electrical Engineering
+        \end{twocolentry}
 
 
-\begin{threecolentry}{\textbf{BSc}}{
-            Sep  2008 – Jun 2012
+\begin{twocolentry}{
+            Sep 2008 – Jun 2012
         }
-             \textbf{Benha University}, Electrical Engineering
-        %    \begin{highlights}
-        %     \item \textbf{GPA:} 85\% \ (\textbf{3.3/4})
-        %     \item \textbf{Capstone:} \textit{EagleEyes} – \textbf{Mine Detection System} using a \textbf{Quadcopter (Drone)}
-        % \end{highlights}
-
-        \end{threecolentry}
+             \textbf{BSc} \textbf{Benha University}, Electrical Engineering
+        \end{twocolentry}
 
 
 

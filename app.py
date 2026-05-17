@@ -142,66 +142,223 @@ def _render_report(st, report: AtsReport, extracted_text: str) -> None:
         st.download_button("Download extracted text", extracted_text, file_name="extracted-text.txt", mime="text/plain")
 
 
+_PROVIDER_ANTHROPIC = "Anthropic (Claude)"
+_PROVIDER_BEDROCK = "AWS Bedrock"
+_PROVIDER_LM_STUDIO = "Local (LM Studio)"
+
+
 def _render_ai_section(st, max_pages: int) -> None:
     """AI Resume Improvement section — shown below the ATS report."""
     st.header("AI Resume Improvement")
-    st.caption(
-        "Uses the Claude Code agent to automatically fix ATS issues in the LaTeX source. "
-        "Requires the `claude` CLI to be installed and authenticated, and a LaTeX compiler "
-        "(latexmk or pdflatex) available locally."
+
+    provider = st.radio(
+        "Provider",
+        options=[_PROVIDER_ANTHROPIC, _PROVIDER_BEDROCK, _PROVIDER_LM_STUDIO],
+        horizontal=True,
     )
 
+    # Shared iteration slider (shown for all providers)
     col_model, col_iters = st.columns(2)
-    with col_model:
-        model = st.selectbox(
-            "Model",
-            options=["claude-sonnet-4-6", "claude-opus-4-7", "claude-haiku-4-5"],
-            index=0,
-        )
-    with col_iters:
-        max_iterations = st.slider("Max iterations", min_value=1, max_value=5, value=3)
 
-    with st.expander("API key (optional — use if your Claude Code subscription is out of credits)"):
-        api_key = st.text_input(
-            "Anthropic API key",
-            type="password",
-            placeholder="sk-ant-...",
+    # Provider-specific fields
+    api_key = None
+    base_url = None
+    aws_access_key_id = None
+    aws_secret_access_key = None
+    aws_profile = None
+    aws_region = "us-east-1"
+
+    if provider == _PROVIDER_ANTHROPIC:
+        st.caption(
+            "Uses the Claude Code agent via your Anthropic subscription or API key. "
+            "Requires the `claude` CLI to be installed and authenticated."
+        )
+        with col_model:
+            model = st.selectbox(
+                "Model",
+                options=["claude-sonnet-4-6", "claude-opus-4-7", "claude-haiku-4-5"],
+                index=0,
+            )
+        with col_iters:
+            max_iterations = st.slider("Max iterations", min_value=1, max_value=5, value=3)
+
+        with st.expander("API key (optional — use if your subscription is out of credits)"):
+            api_key = st.text_input(
+                "Anthropic API key",
+                type="password",
+                placeholder="sk-ant-...",
+                help=(
+                    "Leave empty to use your Claude Code subscription. "
+                    "Enter an API key from console.anthropic.com to use API credits instead."
+                ),
+            ) or None
+
+    elif provider == _PROVIDER_BEDROCK:
+        st.caption(
+            "Runs Claude models via Amazon Bedrock using your AWS credentials. "
+            "Ensure the model is enabled in your AWS account's Bedrock model access settings."
+        )
+        with col_model:
+            model = st.selectbox(
+                "Model",
+                options=[
+                    "us.anthropic.claude-sonnet-4-6",
+                    "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                    "us.anthropic.claude-opus-4-1-20250805-v1:0",
+                ],
+                index=0,
+                help=(
+                    "Cross-region inference profile IDs. "
+                    "Make sure the model is enabled in your AWS account's Bedrock Model Access. "
+                    "IDs may vary — check the Bedrock console if you see an 'invalid model' error."
+                ),
+            )
+        with col_iters:
+            max_iterations = st.slider("Max iterations", min_value=1, max_value=5, value=3)
+
+        use_profile = st.toggle("Use AWS profile (~/.aws/credentials)", value=True)
+
+        if use_profile:
+            col_prof, col_reg = st.columns(2)
+            with col_prof:
+                aws_profile = st.text_input(
+                    "AWS Profile",
+                    value="default",
+                    help="Profile name from ~/.aws/credentials (e.g. default, work, bedrock).",
+                )
+            with col_reg:
+                aws_region = st.selectbox(
+                    "AWS Region",
+                    options=["us-east-1", "us-west-2", "eu-west-1", "ap-northeast-1", "ap-southeast-1"],
+                    index=0,
+                    help="Must be a region where Bedrock Claude models are available.",
+                )
+        else:
+            col_key, col_secret = st.columns(2)
+            with col_key:
+                aws_access_key_id = st.text_input(
+                    "AWS Access Key ID",
+                    placeholder="AKIA...",
+                    help="From AWS Console → IAM → Your user → Security credentials.",
+                ) or None
+            with col_secret:
+                aws_secret_access_key = st.text_input(
+                    "AWS Secret Access Key",
+                    type="password",
+                    placeholder="wJalrXUt...",
+                ) or None
+            aws_profile = None
+            aws_region = st.selectbox(
+                "AWS Region",
+                options=["us-east-1", "us-west-2", "eu-west-1", "ap-northeast-1", "ap-southeast-1"],
+                index=0,
+                help="Must be a region where Bedrock Claude models are available.",
+            )
+            if not aws_access_key_id or not aws_secret_access_key:
+                st.warning("Enter your AWS Access Key ID and Secret Access Key to use Bedrock.")
+
+    else:  # LM Studio
+        st.caption(
+            "Sends requests to a local LM Studio model via its Anthropic-compatible endpoint. "
+            "Make sure LM Studio is running with the server started."
+        )
+        with col_model:
+            model = st.text_input(
+                "Model ID",
+                value="qwen/qwen3.5-9b",
+                help="The model ID as shown in LM Studio (e.g. qwen/qwen3.5-9b).",
+            )
+        with col_iters:
+            max_iterations = st.slider("Max iterations", min_value=1, max_value=5, value=2)
+
+        base_url = st.text_input(
+            "LM Studio base URL",
+            value="http://127.0.0.1:1234",
             help=(
-                "Leave empty to use your Claude Code subscription (claude.ai login). "
-                "Enter an Anthropic API key from console.anthropic.com to use API credits instead."
+                "In LM Studio: Local Server → REST API v1 → Anthropic-compatible → Start Server. "
+                "Use 127.0.0.1 (not localhost) to avoid IPv6 issues on macOS."
             ),
-        ) or None
+        )
+        st.info(
+            "Load your model in LM Studio with **context window ≥ 16384 tokens** before running. "
+            "(Model settings → n_ctx)"
+        )
 
     run_agent_button = st.button("Run AI Agent", type="primary")
 
     if run_agent_button:
-        st.session_state.agent_result = None
-        with st.spinner("AI agent is improving your resume — this may take a minute or two…"):
-            try:
-                from ats_resume_checker.agent import run_improvement_agent
+        import queue as _queue
+        import threading as _threading
 
-                result = run_improvement_agent(
-                    tex_bytes=st.session_state.uploaded_tex_bytes,
-                    pdf_bytes=st.session_state.uploaded_pdf_bytes,
+        st.session_state.agent_result = None
+        msg_q: _queue.Queue[str | None] = _queue.Queue()
+        result_holder: dict = {}
+        error_holder: dict = {}
+
+        # Read session state on the main Streamlit thread — threads cannot access it.
+        _tex_bytes = st.session_state.get("uploaded_tex_bytes")
+        _pdf_bytes = st.session_state.get("uploaded_pdf_bytes")
+        _keywords = st.session_state.get("uploaded_keywords") or []
+
+        if not _tex_bytes or not _pdf_bytes:
+            st.error("Run the ATS check first to upload your files before using the AI agent.")
+            return
+
+        def _run_in_thread() -> None:
+            from ats_resume_checker.agent import run_improvement_agent
+            try:
+                result_holder["v"] = run_improvement_agent(
+                    tex_bytes=_tex_bytes,
+                    pdf_bytes=_pdf_bytes,
                     max_iterations=max_iterations,
                     model=model,
                     max_pages=max_pages,
-                    keywords=st.session_state.uploaded_keywords or [],
+                    keywords=_keywords,
                     api_key=api_key,
+                    base_url=base_url or None,
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    aws_profile=aws_profile,
+                    aws_region=aws_region,
+                    message_callback=lambda m: msg_q.put(m),
                 )
-                st.session_state.agent_result = result
-            except RuntimeError as exc:
-                st.error(str(exc))
             except Exception as exc:
-                exc_str = str(exc)
-                if "error result: success" in exc_str:
-                    st.warning(
-                        "The agent completed but the Claude CLI returned a non-zero exit code. "
-                        "This is a known behaviour in some Claude Code versions. "
-                        "Results may be partial — check the score and download the improved .tex."
-                    )
-                else:
-                    st.error(f"Agent error ({type(exc).__name__}): {exc_str}")
+                error_holder["v"] = exc
+            finally:
+                msg_q.put(None)  # sentinel — agent finished
+
+        t = _threading.Thread(target=_run_in_thread, daemon=True)
+        t.start()
+
+        with st.status("AI agent is working…", expanded=True) as status:
+            while True:
+                try:
+                    msg = msg_q.get(timeout=0.3)
+                except _queue.Empty:
+                    continue
+                if msg is None:
+                    break
+                st.markdown(msg)
+            status.update(label="Agent finished", state="complete", expanded=False)
+
+        t.join()
+
+        if "v" in error_holder:
+            exc = error_holder["v"]
+            exc_str = str(exc)
+            if isinstance(exc, RuntimeError):
+                st.error(exc_str)
+            elif "error result: success" in exc_str or "maximum number of turns" in exc_str:
+                st.warning(
+                    "The agent hit a turn limit or non-zero exit. "
+                    "Results below reflect partial improvements — increase Max iterations for more."
+                )
+                if "v" in result_holder:
+                    st.session_state.agent_result = result_holder["v"]
+            else:
+                st.error(f"Agent error ({type(exc).__name__}): {exc_str}")
+        elif "v" in result_holder:
+            st.session_state.agent_result = result_holder["v"]
 
     if st.session_state.agent_result is not None:
         _render_agent_result(st, st.session_state.agent_result)
