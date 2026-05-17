@@ -46,3 +46,11 @@ class ChecksTests(unittest.TestCase):
         self.assertIn("contact.email", failures)
         self.assertIn("parse.text_volume", failures)
         self.assertIn("parse.encrypted", failures)
+
+    def test_run_checks_keeps_full_extracted_text(self):
+        long_text = GOOD_TEXT + "\n" + ("full extracted text sentinel " * 200)
+
+        report = run_checks(GOOD_TEX, long_text, {"pages": 2, "encrypted": "no", "javascript": "no"})
+
+        self.assertEqual(report.extracted_text, long_text.strip())
+        self.assertIn("full extracted text sentinel", report.extracted_text)

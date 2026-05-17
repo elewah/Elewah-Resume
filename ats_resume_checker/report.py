@@ -69,10 +69,10 @@ def render_markdown(report: AtsReport) -> str:
     lines.extend(
         [
             "",
-            "## Extracted Text Preview",
+            "## Full Extracted Text",
             "",
             "```text",
-            report.extracted_text_preview,
+            report.extracted_text,
             "```",
         ]
     )

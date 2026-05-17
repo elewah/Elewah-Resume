@@ -113,7 +113,8 @@ def _render_report(st, report: AtsReport, extracted_text: str) -> None:
             st.write("Extracted sections:", report.extracted_sections or ["None detected"])
 
     with extracted_tab:
-        st.code(report.extracted_text_preview or extracted_text, language="text")
+        st.caption("Full text extracted from the uploaded PDF. This is not truncated.")
+        st.code(report.extracted_text or extracted_text.strip(), language="text")
 
     with downloads_tab:
         markdown_report = render_markdown(report)

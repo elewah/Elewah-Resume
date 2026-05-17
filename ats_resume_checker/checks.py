@@ -62,7 +62,7 @@ class AtsReport:
     extracted_sections: list[str]
     keywords: dict[str, list[str]]
     pdf_info: dict[str, Any]
-    extracted_text_preview: str
+    extracted_text: str
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
@@ -98,7 +98,7 @@ def run_checks(
         extracted_sections=extracted_sections,
         keywords=keyword_result,
         pdf_info=pdf_info,
-        extracted_text_preview=_preview(extracted_text),
+        extracted_text=_full_extracted_text(extracted_text),
     )
 
 
@@ -316,9 +316,8 @@ def _score(checks: list[CheckResult]) -> int:
     return max(score, 0)
 
 
-def _preview(text: str, max_chars: int = 2000) -> str:
-    cleaned = text.strip()
-    return cleaned[:max_chars] + ("..." if len(cleaned) > max_chars else "")
+def _full_extracted_text(text: str) -> str:
+    return text.strip()
 
 
 def _lower_words(text: str) -> str:

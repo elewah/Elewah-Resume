@@ -124,7 +124,7 @@ The UI includes:
 - detailed checks table
 - keyword coverage
 - PDF metadata
-- extracted text preview
+- full extracted text view
 - Markdown, JSON, and extracted-text downloads
 
 The UI still requires Poppler tools (`pdftotext` and `pdfinfo`) to be installed.
@@ -153,4 +153,4 @@ Top fixes:
 
 This tool does not emulate a specific ATS vendor. It checks the same practical signals recruiters and ATS parsers often depend on: selectable text, readable contact fields, conventional sections, sane metadata, and keyword extraction.
 
-For best results, always inspect the extracted text preview in the report.
+For best results, always inspect the full extracted text in the report.
