@@ -30,8 +30,16 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Inputs")
-        tex_file = st.file_uploader("LaTeX source (.tex)", type=["tex"])
-        pdf_file = st.file_uploader("Generated resume PDF (.pdf)", type=["pdf"])
+        pdf_file = st.file_uploader("Resume PDF (.pdf) — required", type=["pdf"])
+        tex_file = st.file_uploader(
+            "LaTeX source (.tex) — optional",
+            type=["tex"],
+            help=(
+                "Upload the LaTeX source for deeper checks: Unicode mapping, "
+                "risky package detection, and source-vs-PDF section comparison. "
+                "Leave empty to run in PDF-only mode."
+            ),
+        )
         max_pages = st.number_input("Maximum page count", min_value=1, max_value=10, value=2, step=1)
         raw_keywords = st.text_area(
             "Target keywords",
@@ -41,22 +49,31 @@ def main() -> None:
         )
         run_button = st.button("Run ATS Check", type="primary", use_container_width=True)
 
-    if not tex_file or not pdf_file:
-        st.info("Upload both a `.tex` source file and the matching `.pdf` resume to begin.")
+    if not pdf_file:
+        st.info("Upload a resume PDF to begin. A LaTeX source file is optional but enables deeper checks.")
         return
+
+    pdf_only_mode = tex_file is None
+    if pdf_only_mode:
+        st.info(
+            "**PDF-only mode** — running without a LaTeX source. "
+            "LaTeX-specific checks (`parse.unicode_mapping`, `layout.package.*`) are skipped. "
+            "Upload a `.tex` file alongside the PDF to enable them.",
+            icon="ℹ️",
+        )
 
     if run_button:
         # Clear stale agent result whenever the user re-runs the ATS check
         st.session_state.agent_result = None
         try:
             analysis = analyze_uploaded_resume(
-                tex_file.getvalue(),
+                tex_file.getvalue() if tex_file else None,
                 pdf_file.getvalue(),
                 max_pages=int(max_pages),
                 keywords=parse_keywords(raw_keywords),
             )
             st.session_state.ats_analysis = analysis
-            st.session_state.uploaded_tex_bytes = tex_file.getvalue()
+            st.session_state.uploaded_tex_bytes = tex_file.getvalue() if tex_file else None
             st.session_state.uploaded_pdf_bytes = pdf_file.getvalue()
             st.session_state.uploaded_keywords = parse_keywords(raw_keywords)
         except UnicodeDecodeError:
@@ -300,8 +317,14 @@ def _render_ai_section(st, max_pages: int) -> None:
         _pdf_bytes = st.session_state.get("uploaded_pdf_bytes")
         _keywords = st.session_state.get("uploaded_keywords") or []
 
-        if not _tex_bytes or not _pdf_bytes:
+        if not _pdf_bytes:
             st.error("Run the ATS check first to upload your files before using the AI agent.")
+            return
+        if not _tex_bytes:
+            st.error(
+                "The AI agent requires a LaTeX source file (.tex) to edit. "
+                "Re-run the ATS check with a `.tex` file uploaded to enable the agent."
+            )
             return
 
         def _run_in_thread() -> None:

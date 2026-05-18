@@ -77,15 +77,22 @@ def run_checks(
     max_pages: int = 2,
     keywords: Iterable[str] = DEFAULT_KEYWORDS,
 ) -> AtsReport:
-    source_text = normalize_latex_text(tex_source)
-    source_sections = extract_sections(tex_source)
+    """Run all ATS checks.
+
+    Pass ``tex_source=""`` (or omit) to run in **PDF-only mode**: checks that
+    require LaTeX source (``parse.unicode_mapping``, ``layout.package.*``) are
+    silently skipped and the score is computed from the remaining checks only.
+    """
+    has_source = bool(tex_source and tex_source.strip())
+    source_text = normalize_latex_text(tex_source) if has_source else ""
+    source_sections = extract_sections(tex_source) if has_source else []
     extracted_sections = _detect_sections(extracted_text)
     checks: list[CheckResult] = []
 
     checks.extend(_contact_checks(extracted_text))
-    checks.extend(_section_checks(extracted_text, source_sections))
-    checks.extend(_parseability_checks(tex_source, extracted_text, pdf_info, max_pages))
-    checks.extend(_layout_checks(tex_source, extracted_text))
+    checks.extend(_section_checks(extracted_text, source_sections, has_source=has_source))
+    checks.extend(_parseability_checks(tex_source, extracted_text, pdf_info, max_pages, has_source=has_source))
+    checks.extend(_layout_checks(tex_source, extracted_text, has_source=has_source))
 
     keyword_result = _keyword_coverage(source_text, extracted_text, keywords)
     checks.append(_keyword_check(keyword_result))
@@ -137,7 +144,7 @@ def _contact_checks(text: str) -> list[CheckResult]:
     return checks
 
 
-def _section_checks(text: str, source_sections: list[str]) -> list[CheckResult]:
+def _section_checks(text: str, source_sections: list[str], *, has_source: bool = True) -> list[CheckResult]:
     normalized = _lower_words(text)
     source_normalized = {_lower_words(section) for section in source_sections}
     checks = []
@@ -146,7 +153,7 @@ def _section_checks(text: str, source_sections: list[str]) -> list[CheckResult]:
         found_in_source = any(alias in source_normalized for alias in aliases)
         status = "pass" if found_in_pdf else "warn"
         message = f"{group.title()} section found in extracted text." if found_in_pdf else f"{group.title()} section not found in extracted text."
-        if found_in_source and not found_in_pdf:
+        if has_source and found_in_source and not found_in_pdf:
             message += " It exists in source, so the PDF layout may be hurting extraction."
         checks.append(
             CheckResult(
@@ -160,7 +167,9 @@ def _section_checks(text: str, source_sections: list[str]) -> list[CheckResult]:
     return checks
 
 
-def _parseability_checks(tex_source: str, text: str, pdf_info: dict[str, Any], max_pages: int) -> list[CheckResult]:
+def _parseability_checks(
+    tex_source: str, text: str, pdf_info: dict[str, Any], max_pages: int, *, has_source: bool = True
+) -> list[CheckResult]:
     pages = pdf_info.get("pages")
     encrypted = str(pdf_info.get("encrypted", "")).lower()
     javascript = str(pdf_info.get("javascript", "")).lower()
@@ -178,13 +187,6 @@ def _parseability_checks(tex_source: str, text: str, pdf_info: dict[str, Any], m
             "pass" if _garbage_ratio(text) < 0.01 else "warn",
             f"Suspicious character ratio: {_garbage_ratio(text):.2%}.",
             "Remove icon fonts or replace icons with plain text labels.",
-        ),
-        CheckResult(
-            "parse.unicode_mapping",
-            "Unicode mapping hints",
-            "pass" if ("glyphtounicode" in tex_source and "pdfgentounicode" in tex_source) else "warn",
-            "LaTeX source includes Unicode extraction hints." if "pdfgentounicode" in tex_source else "Unicode extraction hints not detected.",
-            "For pdfTeX, include glyphtounicode and set \\pdfgentounicode=1.",
         ),
         CheckResult(
             "parse.encrypted",
@@ -208,22 +210,36 @@ def _parseability_checks(tex_source: str, text: str, pdf_info: dict[str, Any], m
             f"Keep the resume at {max_pages} page(s) or less for this check.",
         ),
     ]
+    # unicode_mapping requires LaTeX source — skip in PDF-only mode
+    if has_source:
+        checks.insert(
+            2,
+            CheckResult(
+                "parse.unicode_mapping",
+                "Unicode mapping hints",
+                "pass" if ("glyphtounicode" in tex_source and "pdfgentounicode" in tex_source) else "warn",
+                "LaTeX source includes Unicode extraction hints." if "pdfgentounicode" in tex_source else "Unicode extraction hints not detected.",
+                "For pdfTeX, include glyphtounicode and set \\pdfgentounicode=1.",
+            ),
+        )
     return checks
 
 
-def _layout_checks(tex_source: str, extracted_text: str) -> list[CheckResult]:
+def _layout_checks(tex_source: str, extracted_text: str, *, has_source: bool = True) -> list[CheckResult]:
     checks = []
-    for package, reason in RISKY_LAYOUT_PACKAGES.items():
-        if re.search(rf"\\usepackage(?:\[[^\]]*\])?\{{[^}}]*\b{re.escape(package)}\b[^}}]*\}}", tex_source, re.I):
-            checks.append(
-                CheckResult(
-                    f"layout.package.{package}",
-                    f"Layout package: {package}",
-                    "warn",
-                    reason,
-                    "Verify pdftotext reading order and replace visual-only elements with plain text where possible.",
+    # Package checks require LaTeX source — skip entirely in PDF-only mode
+    if has_source:
+        for package, reason in RISKY_LAYOUT_PACKAGES.items():
+            if re.search(rf"\\usepackage(?:\[[^\]]*\])?\{{[^}}]*\b{re.escape(package)}\b[^}}]*\}}", tex_source, re.I):
+                checks.append(
+                    CheckResult(
+                        f"layout.package.{package}",
+                        f"Layout package: {package}",
+                        "warn",
+                        reason,
+                        "Verify pdftotext reading order and replace visual-only elements with plain text where possible.",
+                    )
                 )
-            )
     if re.search(r"^\w+\s*\n\w+\s*$", extracted_text, re.M):
         checks.append(
             CheckResult(

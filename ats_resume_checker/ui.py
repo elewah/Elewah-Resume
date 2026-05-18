@@ -19,13 +19,17 @@ class UploadedAnalysis:
 
 
 def analyze_uploaded_resume(
-    tex_bytes: bytes,
+    tex_bytes: bytes | None,
     pdf_bytes: bytes,
     max_pages: int = 2,
     keywords: Iterable[str] | None = None,
 ) -> UploadedAnalysis:
-    """Analyze uploaded LaTeX/PDF bytes using temporary files for PDF tools."""
-    tex_source = tex_bytes.decode("utf-8")
+    """Analyze uploaded resume bytes using temporary files for PDF tools.
+
+    Pass ``tex_bytes=None`` to run in **PDF-only mode**: LaTeX source checks
+    (``parse.unicode_mapping``, ``layout.package.*``) are skipped automatically.
+    """
+    tex_source = tex_bytes.decode("utf-8") if tex_bytes else ""
     selected_keywords = list(keywords) if keywords is not None else DEFAULT_KEYWORDS
 
     with tempfile.TemporaryDirectory() as tmp:
