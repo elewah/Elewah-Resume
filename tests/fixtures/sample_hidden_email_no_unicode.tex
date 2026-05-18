@@ -1,0 +1,56 @@
+% FIXTURE: sample_hidden_email_no_unicode
+% EXPECTED FAILURES  : contact.email
+% EXPECTED WARNINGS  : parse.unicode_mapping
+% PURPOSE: Email is inside an href with empty visible text (ATS cannot extract it).
+%          glyphtounicode hints are absent.
+\documentclass[10pt, letterpaper]{article}
+\usepackage[top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+% INTENTIONAL ISSUE: glyphtounicode hints NOT included → parse.unicode_mapping WARN
+% \input{glyphtounicode}
+% \pdfgentounicode=1
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+% ── Contact ──────────────────────────────────────────────────────────
+\begin{center}
+    {\Large \textbf{John Smith}}\\[4pt]
+    Vancouver, BC \quad|\quad
+    % INTENTIONAL ISSUE: href anchor with no visible text → contact.email FAIL
+    \href{mailto:john@example.com}{} \quad|\quad
+    +1 604-555-0199 \quad|\quad
+    \href{https://linkedin.com/in/johnsmith}{linkedin.com/in/johnsmith}
+\end{center}
+
+\section*{Summary}
+Backend developer with experience in Python, PostgreSQL, and Docker.
+Passionate about building scalable web services and REST APIs.
+
+\section*{Technical Skills}
+\begin{itemize}[leftmargin=*]
+    \item Python, FastAPI, Docker, AWS, PostgreSQL, CI/CD, LLMs, RAG
+\end{itemize}
+
+\section*{Professional Experience}
+\textbf{Backend Developer}, Widget Co \hfill Mar 2020 -- Present
+\begin{itemize}[leftmargin=*]
+    \item Built Python microservices using FastAPI and PostgreSQL deployed on AWS with Docker.
+    \item Implemented CI/CD pipelines reducing deployment time by 50\%.
+    \item Integrated LLMs and RAG for an internal knowledge-base search tool.
+\end{itemize}
+
+\section*{Education}
+\textbf{BSc Computer Science}, UBC \hfill Sep 2015 -- Apr 2019
+
+\section*{Projects}
+\textbf{AutoDeploy} — Lightweight Python CLI for Docker-based deployments on AWS EC2.
+\begin{itemize}[leftmargin=*]
+    \item Used by 3 internal teams; cut average deployment time from 20 min to 4 min.
+\end{itemize}
+
+\end{document}

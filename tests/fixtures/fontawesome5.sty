@@ -1,0 +1,13 @@
+% Minimal fontawesome5 stub for ATS fixture compilation.
+% Defines only the icon commands used in the test fixtures so pdflatex
+% can compile without the real texlive-fonts-extra package installed.
+% The ATS checker still detects \usepackage{fontawesome5} in the source
+% and produces the expected layout.package.fontawesome5 WARN.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fontawesome5}[2024/01/01 stub for ATS fixture tests]
+\newcommand{\faEnvelope}{[email]}
+\newcommand{\faPhone}{[phone]}
+\newcommand{\faLinkedin}{[li]}
+\newcommand{\faGithub}{[gh]}
+\newcommand{\faGlobe}{[web]}
+\endinput

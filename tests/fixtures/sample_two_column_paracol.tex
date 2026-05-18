@@ -1,0 +1,71 @@
+% FIXTURE: sample_two_column_paracol
+% EXPECTED WARNINGS  : layout.package.paracol,
+%                      section.summary, section.skills, section.experience,
+%                      section.education, section.projects
+% PURPOSE: Uses paracol for a two-column layout (ATS reading-order risk).
+%          Section headings use non-standard names so they are not detected
+%          in extracted text → all section checks warn.
+\documentclass[10pt, letterpaper]{article}
+\usepackage[top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{paracol}   % INTENTIONAL ISSUE: paracol → layout.package.paracol WARN
+
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Alice Wang}}\\[4pt]
+    Montreal, QC \quad|\quad
+    \href{mailto:alice@example.com}{alice@example.com} \quad|\quad
+    +1 514-555-0177 \quad|\quad
+    \href{https://linkedin.com/in/alicewang}{linkedin.com/in/alicewang}
+\end{center}
+
+\columnratio{0.35}
+\begin{paracol}{2}
+
+% ── LEFT COLUMN ──────────────────────────────────────────────────────
+% INTENTIONAL ISSUE: Non-standard section names → section.* WARN
+\section*{About Me}
+Fullstack engineer with 4 years building web apps with React, Node, and PostgreSQL.
+
+\section*{Core Competencies}
+\begin{itemize}[leftmargin=*]
+    \item Python, JavaScript, TypeScript
+    \item React, Node.js, FastAPI
+    \item PostgreSQL, MongoDB
+    \item Docker, AWS, CI/CD
+    \item LLMs, RAG, LangChain
+\end{itemize}
+
+\section*{Schooling}
+\textbf{BEng Software Engineering}\\
+McGill University \hfill 2015--2019
+
+\switchcolumn
+
+% ── RIGHT COLUMN ─────────────────────────────────────────────────────
+\section*{Work History}
+\textbf{Fullstack Engineer}, Techfirm \hfill 2020--Present
+\begin{itemize}[leftmargin=*]
+    \item Built REST APIs with FastAPI and PostgreSQL serving 500K daily users.
+    \item Migrated frontend from Vue to React, improving load time by 40\%.
+    \item Introduced Docker and CI/CD pipelines cutting release cycles from weekly to daily.
+\end{itemize}
+
+\section*{Side Projects}
+\textbf{QueryBot} — RAG chatbot over internal Confluence docs using LangChain and AWS.
+\begin{itemize}[leftmargin=*]
+    \item Reduced support ticket volume by 25\% after internal rollout.
+    \item Deployed via Docker Compose with automatic model deployment updates.
+\end{itemize}
+
+\end{paracol}
+
+\end{document}

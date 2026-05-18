@@ -1,0 +1,67 @@
+% FIXTURE: sample_table_skills_fontawesome
+% EXPECTED WARNINGS  : layout.package.fontawesome5, layout.package.tabularx
+% PURPOSE: Uses fontawesome5 for contact icons (glyphs may not extract) and
+%          tabularx to lay out the skills section as a grid (reading-order risk).
+\documentclass[10pt, letterpaper]{article}
+\usepackage[top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fontawesome5}   % INTENTIONAL ISSUE → layout.package.fontawesome5 WARN
+\usepackage{tabularx}       % INTENTIONAL ISSUE → layout.package.tabularx WARN
+
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+% ── Contact (icons from fontawesome5 precede plain-text links) ────────
+\begin{center}
+    {\Large \textbf{Carlos Rivera}}\\[6pt]
+    \faEnvelope\ \href{mailto:carlos@example.com}{carlos@example.com} \quad
+    \faPhone\ +1 780-555-0144 \quad
+    \faLinkedin\ \href{https://linkedin.com/in/carlosrivera}{linkedin.com/in/carlosrivera} \quad
+    \faGithub\ \href{https://github.com/carlosrivera}{github.com/carlosrivera}
+\end{center}
+
+\section*{Summary}
+Data engineer with 6 years of experience designing ETL pipelines, data warehouses, and
+ML feature stores. Strong background in Python, Spark, AWS, and PostgreSQL.
+
+% ── Skills (tabularx grid) ────────────────────────────────────────────
+% INTENTIONAL ISSUE: skill grid in tabularx → layout.package.tabularx WARN
+\section*{Technical Skills}
+\begin{tabularx}{\linewidth}{X X X}
+    Python        & Apache Spark  & AWS Redshift  \\
+    PostgreSQL    & Docker        & Kubernetes    \\
+    LLMs          & RAG           & LangChain     \\
+    FastAPI       & CI/CD         & Airflow       \\
+\end{tabularx}
+
+\section*{Professional Experience}
+\textbf{Senior Data Engineer}, DataCo \hfill Apr 2019 -- Present\\
+Edmonton, AB
+\begin{itemize}[leftmargin=*]
+    \item Designed Spark-based ETL pipelines processing 5TB/day into AWS Redshift.
+    \item Built a RAG-powered data catalogue using LangChain, LLMs, and semantic search.
+    \item Containerised all services with Docker and automated deployments via CI/CD and Kubernetes.
+\end{itemize}
+
+\textbf{Data Engineer}, Analytics Ltd \hfill Aug 2016 -- Mar 2019
+\begin{itemize}[leftmargin=*]
+    \item Migrated legacy MySQL pipelines to PostgreSQL, reducing query latency by 45\%.
+    \item Developed Python libraries for data validation used across 5 teams.
+\end{itemize}
+
+\section*{Education}
+\textbf{MSc Data Science}, University of Alberta \hfill Sep 2014 -- Jun 2016
+
+\section*{Projects}
+\textbf{StreamFlow} — Real-time IoT event processor built with Python, Kafka, and AWS.
+\begin{itemize}[leftmargin=*]
+    \item Ingests 200K events/minute; powers dashboards for model deployment monitoring.
+\end{itemize}
+
+\end{document}

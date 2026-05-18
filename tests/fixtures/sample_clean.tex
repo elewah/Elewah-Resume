@@ -1,0 +1,77 @@
+% FIXTURE: sample_clean
+% EXPECTED: 100/100  — no failures, no warnings
+% PURPOSE:  Baseline. Verifies the checker does not false-positive on a well-formed resume.
+\documentclass[10pt, letterpaper]{article}
+\usepackage[top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+% ATS unicode hints — required for pass on parse.unicode_mapping
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+% ── Contact ──────────────────────────────────────────────────────────
+\begin{center}
+    {\Large \textbf{Jane Doe}}\\[4pt]
+    Toronto, ON \quad|\quad
+    \href{mailto:jane@example.com}{jane@example.com} \quad|\quad
+    +1 416-555-0100 \quad|\quad
+    \href{https://linkedin.com/in/janedoe}{linkedin.com/in/janedoe} \quad|\quad
+    \href{https://github.com/janedoe}{github.com/janedoe}
+\end{center}
+
+% ── Summary ──────────────────────────────────────────────────────────
+\section*{Summary}
+Software engineer with 5 years of experience building scalable Python web services, REST APIs,
+and machine learning pipelines. Skilled in Docker, AWS, PostgreSQL, and CI/CD automation.
+
+% ── Technical Skills ─────────────────────────────────────────────────
+\section*{Technical Skills}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Languages:} Python, JavaScript, SQL
+    \item \textbf{Frameworks:} FastAPI, Flask, React
+    \item \textbf{Cloud \& DevOps:} AWS, Docker, Kubernetes, CI/CD, GitHub Actions
+    \item \textbf{Databases:} PostgreSQL, MongoDB, MySQL
+    \item \textbf{ML:} scikit-learn, PyTorch, model deployment, LLMs, RAG, LangChain
+\end{itemize}
+
+% ── Professional Experience ───────────────────────────────────────────
+\section*{Professional Experience}
+
+\textbf{Senior Software Engineer}, Acme Corp \hfill Jan 2021 -- Present\\
+Toronto, ON
+\begin{itemize}[leftmargin=*]
+    \item Designed and deployed REST APIs serving 2M requests/day using FastAPI and PostgreSQL.
+    \item Reduced infrastructure costs by 30\% by migrating batch jobs to AWS Lambda with Docker.
+    \item Built a RAG-based document search system using LangChain and semantic search, cutting
+          retrieval latency by 60\%.
+\end{itemize}
+
+\vspace{4pt}
+\textbf{Software Engineer}, Beta Inc \hfill Jun 2018 -- Dec 2020\\
+Vancouver, BC
+\begin{itemize}[leftmargin=*]
+    \item Developed Python microservices for an IoT data pipeline processing 50K events/minute.
+    \item Implemented CI/CD pipelines with GitHub Actions, reducing release cycle from 2 weeks to 2 days.
+    \item Led migration from MySQL to PostgreSQL, improving query performance by 40\%.
+\end{itemize}
+
+% ── Education ────────────────────────────────────────────────────────
+\section*{Education}
+\textbf{BSc Computer Science}, University of Toronto \hfill Sep 2014 -- Jun 2018
+
+% ── Projects ─────────────────────────────────────────────────────────
+\section*{Projects}
+
+\textbf{ML Pipeline Toolkit} \hfill \href{https://github.com/janedoe/ml-toolkit}{github.com/janedoe/ml-toolkit}
+\begin{itemize}[leftmargin=*]
+    \item Open-source Python library for model deployment and monitoring; 500+ GitHub stars.
+    \item Supports LLMs, RAG workflows, and AWS SageMaker integration out of the box.
+\end{itemize}
+
+\end{document}

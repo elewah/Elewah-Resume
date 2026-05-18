@@ -1,0 +1,56 @@
+% FIXTURE: sample_missing_contact_sections
+% EXPECTED FAILURES  : contact.email, keywords.coverage
+% EXPECTED WARNINGS  : contact.name, contact.phone, contact.links,
+%                      section.summary, section.skills, section.projects,
+%                      parse.unicode_mapping
+% PURPOSE: Contact block has no email, no phone, no links, and the name field
+%          is a single word (not detected as a name). Several standard sections
+%          are absent. Keywords are thin. glyphtounicode hints are missing.
+\documentclass[10pt, letterpaper]{article}
+\usepackage[top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+% INTENTIONAL ISSUE: no glyphtounicode → parse.unicode_mapping WARN
+% \input{glyphtounicode}
+% \pdfgentounicode=1
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+% ── Contact ──────────────────────────────────────────────────────────
+% INTENTIONAL ISSUE: single-word "name" → contact.name WARN
+% INTENTIONAL ISSUE: no email address   → contact.email FAIL
+% INTENTIONAL ISSUE: no phone number    → contact.phone WARN
+% INTENTIONAL ISSUE: no LinkedIn/GitHub → contact.links WARN
+\begin{center}
+    {\Large \textbf{Firstname}}\\[4pt]
+    Ottawa, ON
+\end{center}
+
+% INTENTIONAL ISSUE: no Summary section → section.summary WARN
+% INTENTIONAL ISSUE: no Skills section  → section.skills WARN
+
+\section*{Work Experience}
+\textbf{Junior Developer}, SomeCo \hfill 2021 -- Present
+\begin{itemize}[leftmargin=*]
+    \item Wrote scripts to automate report generation.
+    \item Helped maintain the company website using HTML and CSS.
+    \item Attended team meetings and contributed to sprint planning sessions.
+\end{itemize}
+
+\textbf{Intern}, AnotherCo \hfill Summer 2020
+\begin{itemize}[leftmargin=*]
+    \item Assisted senior developers with debugging and code reviews.
+    \item Updated documentation for internal tools.
+\end{itemize}
+
+\section*{Education}
+\textbf{BSc Computer Science}, Carleton University \hfill 2016 -- 2020
+
+% INTENTIONAL ISSUE: no Projects section → section.projects WARN
+% INTENTIONAL ISSUE: no recognisable tech keywords → keywords.coverage FAIL
+
+\end{document}

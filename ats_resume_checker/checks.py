@@ -130,14 +130,18 @@ def _contact_checks(text: str) -> list[CheckResult]:
             "contact.phone",
             "Phone extraction",
             "pass" if re.search(r"(?:\+?\d[\s().-]*){10,}", text) else "warn",
-            "Phone number appears extractable.",
+            "Phone number appears extractable."
+            if re.search(r"(?:\+?\d[\s().-]*){10,}", text)
+            else "No phone number found in extracted text.",
             "Use a plain text phone number with country code when possible.",
         ),
         CheckResult(
             "contact.links",
             "Professional links",
             "pass" if re.search(r"(linkedin|github|portfolio|https?://|www\.)", text, re.I) else "warn",
-            "Professional links appear extractable.",
+            "Professional links appear extractable."
+            if re.search(r"(linkedin|github|portfolio|https?://|www\.)", text, re.I)
+            else "No LinkedIn, GitHub, or portfolio link found in extracted text.",
             "Use plain link text such as linkedin.com/in/name and github.com/name.",
         ),
     ]
@@ -210,15 +214,20 @@ def _parseability_checks(
             f"Keep the resume at {max_pages} page(s) or less for this check.",
         ),
     ]
-    # unicode_mapping requires LaTeX source — skip in PDF-only mode
+    # unicode_mapping requires LaTeX source — skip in PDF-only mode.
+    # Strip comments first so a commented-out \input{glyphtounicode} does not
+    # produce a false-positive PASS.
     if has_source:
+        from .latex import strip_comments as _strip_comments
+        stripped = _strip_comments(tex_source)
+        has_unicode_hints = "glyphtounicode" in stripped and "pdfgentounicode" in stripped
         checks.insert(
             2,
             CheckResult(
                 "parse.unicode_mapping",
                 "Unicode mapping hints",
-                "pass" if ("glyphtounicode" in tex_source and "pdfgentounicode" in tex_source) else "warn",
-                "LaTeX source includes Unicode extraction hints." if "pdfgentounicode" in tex_source else "Unicode extraction hints not detected.",
+                "pass" if has_unicode_hints else "warn",
+                "LaTeX source includes Unicode extraction hints." if has_unicode_hints else "Unicode extraction hints not detected.",
                 "For pdfTeX, include glyphtounicode and set \\pdfgentounicode=1.",
             ),
         )

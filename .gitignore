@@ -15,3 +15,5 @@ extracted-text.txt
 *.fls
 *.log
 *.synctex.gz
+*.out
+*.tmp
