@@ -23,11 +23,15 @@ def analyze_uploaded_resume(
     pdf_bytes: bytes,
     max_pages: int = 2,
     keywords: Iterable[str] | None = None,
+    jd_keywords: list[str] | None = None,
 ) -> UploadedAnalysis:
     """Analyze uploaded resume bytes using temporary files for PDF tools.
 
     Pass ``tex_bytes=None`` to run in **PDF-only mode**: LaTeX source checks
     (``parse.unicode_mapping``, ``layout.package.*``) are skipped automatically.
+
+    Pass ``jd_keywords`` (from ``jd_tools.extract_keywords``) to add a
+    ``keywords.jd_match`` check against the specific job description.
     """
     tex_source = tex_bytes.decode("utf-8") if tex_bytes else ""
     selected_keywords = list(keywords) if keywords is not None else DEFAULT_KEYWORDS
@@ -39,7 +43,14 @@ def analyze_uploaded_resume(
 
         extracted_text = extract_pdf_text(pdf_path)
         pdf_info = read_pdf_info(pdf_path)
-        report = run_checks(tex_source, extracted_text, pdf_info, max_pages=max_pages, keywords=selected_keywords)
+        report = run_checks(
+            tex_source,
+            extracted_text,
+            pdf_info,
+            max_pages=max_pages,
+            keywords=selected_keywords,
+            jd_keywords=jd_keywords or [],
+        )
 
     return UploadedAnalysis(report=report, extracted_text=extracted_text, pdf_info=pdf_info)
 

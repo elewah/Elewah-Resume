@@ -11,6 +11,7 @@ import json
 from ats_resume_checker.checks import DEFAULT_KEYWORDS, AtsReport
 from ats_resume_checker.pdf_tools import PdfToolError
 from ats_resume_checker.report import render_markdown
+from ats_resume_checker.jd_tools import extract_keywords as _extract_jd_keywords, fetch_jd_from_url as _fetch_jd_url
 from ats_resume_checker.ui import analyze_uploaded_resume, parse_keywords, summarize_status_counts, top_fixes
 
 
@@ -27,6 +28,7 @@ def main() -> None:
     st.session_state.setdefault("uploaded_tex_bytes", None)
     st.session_state.setdefault("uploaded_pdf_bytes", None)
     st.session_state.setdefault("uploaded_keywords", None)
+    st.session_state.setdefault("uploaded_jd_keywords", None)
 
     with st.sidebar:
         st.header("Inputs")
@@ -47,6 +49,17 @@ def main() -> None:
             height=220,
             help="One keyword per line. These are checked against the extracted PDF text.",
         )
+        st.subheader("Job Description (optional)")
+        jd_text_input = st.text_area(
+            "Paste job description",
+            height=150,
+            help="Paste the full job description text to score your resume against this specific role.",
+        )
+        jd_url_input = st.text_input(
+            "Or enter job posting URL",
+            placeholder="https://jobs.example.com/...",
+            help="URL of a job posting. HTML will be fetched and stripped automatically.",
+        )
         run_button = st.button("Run ATS Check", type="primary", use_container_width=True)
 
     if not pdf_file:
@@ -65,17 +78,32 @@ def main() -> None:
     if run_button:
         # Clear stale agent result whenever the user re-runs the ATS check
         st.session_state.agent_result = None
+
+        # Resolve JD keywords from text area or URL
+        jd_keywords: list[str] = []
+        if jd_text_input and jd_text_input.strip():
+            jd_keywords = _extract_jd_keywords(jd_text_input)
+        elif jd_url_input and jd_url_input.strip():
+            with st.spinner("Fetching job description from URL…"):
+                try:
+                    jd_text_fetched = _fetch_jd_url(jd_url_input.strip())
+                    jd_keywords = _extract_jd_keywords(jd_text_fetched)
+                except ValueError as exc:
+                    st.warning(f"Could not fetch JD from URL: {exc}. Proceeding without JD matching.")
+
         try:
             analysis = analyze_uploaded_resume(
                 tex_file.getvalue() if tex_file else None,
                 pdf_file.getvalue(),
                 max_pages=int(max_pages),
                 keywords=parse_keywords(raw_keywords),
+                jd_keywords=jd_keywords or None,
             )
             st.session_state.ats_analysis = analysis
             st.session_state.uploaded_tex_bytes = tex_file.getvalue() if tex_file else None
             st.session_state.uploaded_pdf_bytes = pdf_file.getvalue()
             st.session_state.uploaded_keywords = parse_keywords(raw_keywords)
+            st.session_state.uploaded_jd_keywords = jd_keywords or None
         except UnicodeDecodeError:
             st.error("Could not read the uploaded `.tex` file as UTF-8 text.")
             return
@@ -109,9 +137,17 @@ def _render_report(st, report: AtsReport, extracted_text: str) -> None:
         for fix in fixes:
             st.warning(fix)
 
-    checks_tab, keywords_tab, metadata_tab, extracted_tab, downloads_tab = st.tabs(
-        ["Checks", "Keywords", "PDF Metadata", "Extracted Text", "Downloads"]
-    )
+    tab_labels = ["Checks", "Keywords", "PDF Metadata", "Extracted Text", "Downloads"]
+    if report.jd_match:
+        tab_labels.insert(1, "JD Match")
+    tabs = st.tabs(tab_labels)
+    tab_iter = iter(tabs)
+    checks_tab = next(tab_iter)
+    jd_tab = next(tab_iter) if report.jd_match else None
+    keywords_tab = next(tab_iter)
+    metadata_tab = next(tab_iter)
+    extracted_tab = next(tab_iter)
+    downloads_tab = next(tab_iter)
 
     with checks_tab:
         st.dataframe(
@@ -127,6 +163,19 @@ def _render_report(st, report: AtsReport, extracted_text: str) -> None:
             use_container_width=True,
             hide_index=True,
         )
+
+    if jd_tab is not None and report.jd_match:
+        with jd_tab:
+            jd = report.jd_match
+            pct = jd["match_pct"]
+            st.metric("JD Match", f"{pct:.0%}", f"{len(jd['matched'])} / {jd['total']} keywords")
+            matched_col, missing_col = st.columns(2)
+            with matched_col:
+                st.subheader("Matched")
+                st.write(jd["matched"] or ["None"])
+            with missing_col:
+                st.subheader("Missing")
+                st.write(jd["missing"] or ["None"])
 
     with keywords_tab:
         found_col, missing_col = st.columns(2)

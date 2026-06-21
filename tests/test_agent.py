@@ -36,6 +36,7 @@ def _make_fake_report(score: int = 85):
         source_sections=["Experience"],
         extracted_sections=["Experience"],
         keywords={"found": ["python"], "missing": [], "source_only": []},
+        jd_match=None,
         pdf_info={"pages": 1},
         extracted_text="Jane Doe jane@example.com Experience Software Engineer",
     )

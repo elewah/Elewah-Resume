@@ -7,7 +7,7 @@ expanding it from a LaTeX-only personal tool into a general-purpose ATS checker 
 
 ## Improvement 1 — PDF-Only Mode
 
-**Status:** In progress  
+**Status:** Complete  
 **Impact:** Opens the tool to every job seeker, not just LaTeX users.
 
 ### Problem
@@ -51,7 +51,7 @@ Add a PDF-only analysis path throughout the stack:
 
 ## Improvement 2 — Job Description Matching
 
-**Status:** Planned  
+**Status:** Complete  
 **Impact:** Transforms the tool from a format checker into a real job-targeting assistant.
 
 ### Problem

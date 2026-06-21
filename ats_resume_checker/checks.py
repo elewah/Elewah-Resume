@@ -61,6 +61,7 @@ class AtsReport:
     source_sections: list[str]
     extracted_sections: list[str]
     keywords: dict[str, list[str]]
+    jd_match: dict[str, Any] | None
     pdf_info: dict[str, Any]
     extracted_text: str
 
@@ -76,12 +77,17 @@ def run_checks(
     pdf_info: dict[str, Any],
     max_pages: int = 2,
     keywords: Iterable[str] = DEFAULT_KEYWORDS,
+    jd_keywords: list[str] | None = None,
 ) -> AtsReport:
     """Run all ATS checks.
 
     Pass ``tex_source=""`` (or omit) to run in **PDF-only mode**: checks that
     require LaTeX source (``parse.unicode_mapping``, ``layout.package.*``) are
     silently skipped and the score is computed from the remaining checks only.
+
+    Pass ``jd_keywords`` (a list from ``jd_tools.extract_keywords``) to add a
+    ``keywords.jd_match`` check that scores the resume against the specific job
+    description.  When ``jd_keywords`` is ``None`` or empty the check is skipped.
     """
     has_source = bool(tex_source and tex_source.strip())
     source_text = normalize_latex_text(tex_source) if has_source else ""
@@ -97,6 +103,11 @@ def run_checks(
     keyword_result = _keyword_coverage(source_text, extracted_text, keywords)
     checks.append(_keyword_check(keyword_result))
 
+    jd_match_result: dict[str, Any] | None = None
+    if jd_keywords:
+        jd_match_result = _jd_match_coverage(extracted_text, jd_keywords)
+        checks.append(_jd_match_check(jd_match_result))
+
     score = _score(checks)
     return AtsReport(
         score=score,
@@ -104,6 +115,7 @@ def run_checks(
         source_sections=source_sections,
         extracted_sections=extracted_sections,
         keywords=keyword_result,
+        jd_match=jd_match_result,
         pdf_info=pdf_info,
         extracted_text=_full_extracted_text(extracted_text),
     )
@@ -343,6 +355,42 @@ def _score(checks: list[CheckResult]) -> int:
 
 def _full_extracted_text(text: str) -> str:
     return text.strip()
+
+
+def _jd_match_coverage(extracted_text: str, jd_keywords: list[str]) -> dict[str, Any]:
+    lower_text = extracted_text.lower()
+    matched = [kw for kw in jd_keywords if kw.lower() in lower_text]
+    missing = [kw for kw in jd_keywords if kw.lower() not in lower_text]
+    total = len(jd_keywords)
+    match_pct = len(matched) / total if total else 0.0
+    return {"matched": matched, "missing": missing, "match_pct": match_pct, "total": total}
+
+
+def _jd_match_check(result: dict[str, Any]) -> CheckResult:
+    match_pct = result["match_pct"]
+    matched = result["matched"]
+    missing = result["missing"]
+    total = result["total"]
+    if match_pct >= 0.5:
+        status = "pass"
+    elif match_pct >= 0.25:
+        status = "warn"
+    else:
+        status = "fail"
+    pct_str = f"{match_pct:.0%}"
+    message = (
+        f"JD match: {pct_str} ({len(matched)}/{total} keywords). "
+        f"Missing: {', '.join(missing[:10])}{' …' if len(missing) > 10 else ''}."
+        if missing
+        else f"JD match: {pct_str} ({len(matched)}/{total} keywords). All targeted keywords found."
+    )
+    return CheckResult(
+        "keywords.jd_match",
+        "JD keyword match",
+        status,
+        message,
+        "Add the missing JD keywords as selectable text in your resume where they genuinely apply.",
+    )
 
 
 def _lower_words(text: str) -> str:

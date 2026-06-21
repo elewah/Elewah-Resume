@@ -10,6 +10,7 @@ from .checks import DEFAULT_KEYWORDS, run_checks
 from .latex import BuildError, compile_latex
 from .pdf_tools import PdfToolError, extract_pdf_text, read_pdf_info
 from .report import has_failures, render_console, write_json, write_markdown
+from .jd_tools import extract_keywords as _extract_jd_keywords, fetch_jd_from_url as _fetch_jd_url
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -45,6 +46,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Target keyword to check. Can be repeated. Defaults to the built-in keyword list.",
     )
     parser.add_argument("--compiler", help="Force a LaTeX compiler command, such as latexmk or pdflatex.")
+    parser.add_argument(
+        "--jd",
+        type=Path,
+        metavar="FILE",
+        help="Path to a job description file (.txt or .html). Adds a JD keyword match check.",
+    )
+    parser.add_argument(
+        "--jd-url",
+        metavar="URL",
+        help="URL of a job posting. HTML is fetched and stripped. Adds a JD keyword match check.",
+    )
     return parser
 
 
@@ -55,6 +67,25 @@ def main(argv: list[str] | None = None) -> int:
     if args.pdf_only:
         return _run_pdf_only(args)
     return _run_latex(args, parser)
+
+
+def _resolve_jd_keywords(args: argparse.Namespace) -> list[str]:
+    """Return JD keywords from --jd or --jd-url, or [] if neither is set."""
+    if getattr(args, "jd", None):
+        try:
+            jd_text = args.jd.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            print(f"Error reading JD file: {exc}", file=sys.stderr)
+            return []
+        return _extract_jd_keywords(jd_text)
+    if getattr(args, "jd_url", None):
+        try:
+            jd_text = _fetch_jd_url(args.jd_url)
+        except ValueError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return []
+        return _extract_jd_keywords(jd_text)
+    return []
 
 
 def _run_pdf_only(args: argparse.Namespace) -> int:
@@ -76,8 +107,9 @@ def _run_pdf_only(args: argparse.Namespace) -> int:
         return 2
 
     keywords = args.keywords if args.keywords else DEFAULT_KEYWORDS
+    jd_keywords = _resolve_jd_keywords(args)
     # tex_source="" activates PDF-only mode inside run_checks
-    report = run_checks("", extracted_text, pdf_info, max_pages=args.max_pages, keywords=keywords)
+    report = run_checks("", extracted_text, pdf_info, max_pages=args.max_pages, keywords=keywords, jd_keywords=jd_keywords)
 
     print("(PDF-only mode: LaTeX source checks skipped)\n")
     print(render_console(report))
@@ -118,7 +150,8 @@ def _run_latex(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
         return 2
 
     keywords = args.keywords if args.keywords else DEFAULT_KEYWORDS
-    report = run_checks(tex_source, extracted_text, pdf_info, max_pages=args.max_pages, keywords=keywords)
+    jd_keywords = _resolve_jd_keywords(args)
+    report = run_checks(tex_source, extracted_text, pdf_info, max_pages=args.max_pages, keywords=keywords, jd_keywords=jd_keywords)
 
     print(render_console(report))
     if args.out:

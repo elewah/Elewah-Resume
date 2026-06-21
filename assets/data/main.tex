@@ -1,0 +1,517 @@
+\documentclass[10pt, letterpaper]{article}
+\usepackage{multicol}
+\usepackage{enumitem}
+% Packages:
+\usepackage[
+    ignoreheadfoot, % set margins without considering header and footer
+    top=1 cm, % seperation between body and page edge from the top
+    bottom=1.5 cm, % seperation between body and page edge from the bottom
+    left=1 cm, % seperation between body and page edge from the left
+    right=1 cm, % seperation between body and page edge from the right
+    footskip=1.0 cm, % seperation between body and footer
+    % showframe % for debugging 
+]{geometry} % for adjusting page geometry
+\usepackage[explicit]{titlesec} % for customizing section titles
+\usepackage{tabularx} % for making tables with fixed width columns
+\usepackage{array} % tabularx requires this
+\usepackage[dvipsnames]{xcolor} % for coloring text
+\definecolor{primaryColor}{RGB}{0, 79, 144} % define primary color
+\usepackage{enumitem} % for customizing lists
+\usepackage{amsmath} % for math
+\usepackage[
+    pdftitle={Abdelrahman Elewah Resume},
+    pdfauthor={Abdelrahman Elewah},
+    pdfcreator={LaTeX with RenderCV},
+    colorlinks=true,
+    urlcolor=primaryColor
+]{hyperref} % for links, metadata and bookmarks
+\usepackage[pscoord]{eso-pic} % for floating text on the page
+\usepackage{calc} % for calculating lengths
+\usepackage{bookmark} % for bookmarks
+\usepackage{lastpage} % for getting the total number of pages
+\usepackage{changepage} % for one column entries (adjustwidth environment)
+\usepackage{paracol} % for two and three column entries
+\usepackage{ifthen} % for conditional statements
+\usepackage{needspace} % for avoiding page brake right after the section title
+\usepackage{iftex} % check if engine is pdflatex, xetex or luatex
+\usepackage[official]{eurosym}
+% Ensure that generate pdf is machine readable/ATS parsable:
+\ifPDFTeX
+    \input{glyphtounicode}
+    \pdfgentounicode=1
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage{lmodern}
+\fi
+
+\renewcommand{\familydefault}{\sfdefault}
+
+% Some settings:
+\AtBeginEnvironment{adjustwidth}{\partopsep0pt} % remove space before adjustwidth environment
+\pagestyle{empty} % no header or footer
+\setcounter{secnumdepth}{0} % no section numbering
+\setlength{\parindent}{0pt} % no indentation
+\setlength{\topskip}{0pt} % no top skip
+\setlength{\columnsep}{0.15cm} % set column seperation
+\makeatletter
+\let\ps@customFooterStyle\ps@plain % Copy the plain style to customFooterStyle
+\patchcmd{\ps@customFooterStyle}{\thepage}{
+    \color{gray}\textit{\small Page \thepage{} of \pageref*{LastPage}}
+}{}{} % replace number by desired string
+\makeatother
+\pagestyle{customFooterStyle}
+
+\titleformat{\section}{
+    % avoid page braking right after the section title
+    \needspace{4\baselineskip}
+    % make the font size of the section title large and color it with the primary color
+    \Large\color{primaryColor}
+}{
+}{
+}{
+    % print bold title, give 0.15 cm space and draw a line of 0.8 pt thickness
+    % from the end of the title to the end of the body
+    \textbf{#1}\hspace{0.15cm}\leaders\hrule height 0.8pt\hfill\kern0pt
+}[] % section title formatting
+
+\titlespacing{\section}{
+    % left space:
+    -1pt
+}{
+    % top space:
+    0.3 cm
+}{
+    % bottom space:
+    0.2 cm
+} % section title spacing
+
+% \renewcommand\labelitemi{$\vcenter{\hbox{\small$\bullet$}}$} % custom bullet points
+\newenvironment{highlights}{
+    \begin{itemize}[
+        topsep=0.10 cm,
+        parsep=0.10 cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=0.4 cm + 10pt
+    ]
+}{
+    \end{itemize}
+} % new environment for highlights
+
+\newenvironment{highlightsforbulletentries}{
+    \begin{itemize}[
+        topsep=0.10 cm,
+        parsep=0.10 cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=10pt
+    ]
+}{
+    \end{itemize}
+} % new environment for highlights for bullet entries
+
+
+\newenvironment{onecolentry}{
+    \begin{adjustwidth}{
+        0.2 cm + 0.00001 cm
+    }{
+        0.2 cm + 0.00001 cm
+    }
+}{
+    \end{adjustwidth}
+} % new environment for one column entries
+
+\newenvironment{twocolentry}[2][]{
+    \onecolentry
+    \def\secondColumn{#2}
+    \setcolumnwidth{\fill, 4.5 cm}
+    \begin{paracol}{2}
+}{
+    \switchcolumn \raggedleft \secondColumn
+    \end{paracol}
+    \endonecolentry
+} % new environment for two column entries
+
+\newenvironment{threecolentry}[3][]{
+    \onecolentry
+    \def\thirdColumn{#3}
+    \setcolumnwidth{1.2 cm, \fill, 4.5 cm}
+    \begin{paracol}{3}
+    {\raggedright #2} \switchcolumn
+}{
+    \switchcolumn \raggedleft \thirdColumn
+    \end{paracol}
+    \endonecolentry
+} % new environment for three column entries
+
+\newenvironment{header}{
+    \setlength{\topsep}{0pt}\par\kern\topsep\centering\color{primaryColor}\linespread{1.5}
+}{
+    \par\kern\topsep
+} % new environment for the header
+
+\newcommand{\placelastupdatedtext}{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(
+        \LenToUnit{\paperwidth-2 cm-0.2 cm+0.05cm},
+        \LenToUnit{\paperheight-1.0 cm}
+    )
+    % {\vtop{{\null}\makebox[0pt][c]{
+    %     \small\color{gray}\textit{Last updated in Sep ember 2024}\hspace{\widthof{Last updated in Sep ember 2024}}
+    % }}}%
+  }%
+}%
+
+% save the original href command in a new command:
+\let\hrefWithoutArrow\href
+
+% Keep link text plain so ATS parsers do not extract icon glyphs.
+\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{#2}}
+
+
+\begin{document}
+    \newcommand{\AND}{\unskip
+        \cleaders\copy\ANDbox\hskip\wd\ANDbox
+        \ignorespaces
+    }
+    \newsavebox\ANDbox
+    \sbox\ANDbox{}
+
+    \placelastupdatedtext
+    \begin{header}
+        \fontsize{30 pt}{24 pt}
+        \textbf{Abdelrahman Elewah}
+
+        \vspace{0.2 cm}
+
+        \normalsize
+        \mbox{Oshawa, Ontario, Canada}%
+        \kern 0.25 cm%
+        |%
+        \kern 0.25 cm%
+        \mbox{\hrefWithoutArrow{mailto:abdelrahman.elewah@gmail.com}{abdelrahman.elewah@gmail.com}}%
+        \kern 0.25 cm%
+        |%
+        \kern 0.25 cm%
+        \mbox{\hrefWithoutArrow{tel:+1 289-939-6665}{+1 289-939-6665}}%
+        \kern 0.25 cm%
+        |%
+        \kern 0.25 cm%
+        \mbox{\hrefWithoutArrow{https://elewah.github.io/}{Portfolio: elewah.github.io}}%
+        
+        \vspace{0.05 cm}
+        
+        \mbox{\hrefWithoutArrow{https://www.linkedin.com/in/abdelrahman-elewah/}{LinkedIn: linkedin.com/in/abdelrahman-elewah}}%
+        \kern 0.25 cm%
+        |%
+        \kern 0.25 cm%
+        \mbox{\hrefWithoutArrow{https://github.com/elewah}{GitHub: github.com/elewah}}%
+        \kern 0.25 cm%
+        |%
+        \kern 0.25 cm%
+        \mbox{\hrefWithoutArrow{https://scholar.google.ca/citations?user=qkBGxZYAAAAJ&hl=en}{Google Scholar}}%
+    \end{header}
+
+    \vspace{-0.3 cm}
+
+
+    \section{Summary}
+
+
+
+        
+    \begin{onecolentry}
+ AI/ML Engineer with 5+ years of experience designing and deploying scalable machine learning, LLM, RAG, computer vision, and IoT systems. Currently leading AI integration at MPAC, building production data pipelines, document intelligence workflows, semantic search, and model deployment solutions with Python, LangGraph, FastAPI, PostgreSQL, Docker, and AWS. Strong background translating research prototypes into reliable software systems aligned with business KPIs.
+    \end{onecolentry}
+
+
+        \vspace{-0.2 cm}
+
+        % \begin{onecolentry}
+        %     The boilerplate content was inspired by \href{https://github.com/dnl-blkv/mcdowell-cv}{Gayle McDowell}.
+        % \end{onecolentry}
+\section{Technical Skills}
+% \vspace{-0.5cm}
+\begin{onecolentry}
+\textbf{AI/ML and LLMs:} LLMs, RAG, Agentic AI, LangChain, LangGraph, LangSmith, Docling, MinerU, MCP, semantic search, computer vision, document intelligence, model deployment\\
+\textbf{Programming Languages:} Python, C/C++, JavaScript\\
+\textbf{Web and APIs:} FastAPI, Flask, REST APIs, React, HTML, CSS, Bootstrap\\
+\textbf{Cloud, MLOps, and DevOps:} AWS EC2, AWS App Runner, Amazon ECS, Docker, Docker Compose, Kubernetes, CI/CD, Jenkins, GitLab CI/CD, GitHub Actions\\
+\textbf{Data Systems:} PostgreSQL, MongoDB, MySQL, NoSQL, SQL, Spark, Hadoop\\
+\textbf{Development Tools:} GitHub, GitLab, VS Code, Anaconda, Dev Containers
+\end{onecolentry}
+
+        
+\vspace{-0.2 cm}
+\section{Professional Experience}
+
+\begin{twocolentry}{
+    Pickering, ON 
+
+    Jul 2025 – Present
+}
+    \textbf{Artificial Intelligence Integration Lead}, MPAC
+
+
+\begin{highlights}
+    \item Lead enterprise AI and automation integration across property assessment workflows, improving digital operations through production-ready AI/ML systems.
+    \item Architect scalable data pipelines with Python, LangGraph, FastAPI, Docling, MinerU, PostgreSQL, and MCP servers for building plan parsing, document intelligence, and semantic search.
+    \item Design and deploy RAG systems for building plan understanding, retrieval workflows, and assessment-standard knowledge access.
+    \item Integrate vision-language models such as Qwen3-VL, LayoutLMv3, PaddleOCR-VL, and PP-StructureV3 with RF-DETR for computer vision, object detection, and layout understanding.
+\end{highlights}
+
+
+
+\end{twocolentry}
+
+
+\vspace{0.2 cm}
+\begin{twocolentry}{
+    Remote
+
+    Jan 2023 – Apr 2025
+}
+    \textbf{Instructional Specialist (part-time)}, 2U / University of Toronto
+
+    \begin{highlights}
+        \item Contributed to the success of the \textbf{University of Toronto}'s online \textbf{Data Analytics Boot Camp}, supporting 100+ learners in mastering practical skills for data-driven careers.
+        \item Facilitated hands-on workshops in \textbf{Python, Database, Machine Learning, and Data Visualization}, resulting in a \textbf{15\% increase} in student satisfaction scores.
+    \end{highlights}
+\end{twocolentry}
+
+\vspace{0.2cm}
+
+        \begin{twocolentry}{
+    Oshawa, ON
+
+    Jan 2020 – Apr 2025
+    }
+    \textbf{Research Assistant}, Ontario Tech University
+    \begin{highlights}
+        \item Designed the \textbf{SensorsConnect} framework, enabling real-time \textbf{IoT device interoperability} and scalable data exchange, inspired by the principles of the \textbf{World Wide Web}. \href{https://ieeexplore.ieee.org/document/10752393}{Publication}
+        \item Developed an \textbf{Agentic IoT Search Engine (ASE-IoT)} that integrates \textbf{LLMs}, \textbf{RAG}, and autonomous agents to enable \textbf{natural language querying} of live IoT data, enhancing search precision and user interaction. \href{https://arxiv.org/abs/2503.12255}{Publication}
+        \item Co-led an \textbf{OVIN-funded project} on \textbf{software-defined vehicles (SDVs)} and \textbf{digital twins}, contributing to workforce development in emerging mobility technologies.
+    \end{highlights}
+\end{twocolentry}
+
+
+%         \begin{twocolentry}{
+%             Toronto, ON
+
+%         Jan 2023 – Apr 2025
+%         }
+%             \textbf{Instructional Specialist (part-time)}, 2U 
+    
+%             \begin{highlights}
+%     \item Contributed to the success of the \textbf{University of Toronto} 's online \textbf{Data Analytics Boot Camp} specializing in training data professionals.
+%     \item Assisted learners in acquiring essential \textbf{practical and technical skills} for modern data analysis:
+%     \begin{enumerate}
+%         % \item[-] \textbf{Excel:} Pivot tables, Forecasting, VBA scripting, Statistical modeling.
+%         \item[-] \textbf{Python Data Analytics:} APIs, NumPy, SciPy, Pandas, Matplotlib, TensorFlow, Keras, PyTorch.
+%         \item[-] \textbf{Databases:} MySQL, SQL, PostgreSQL/pgAdmin, MongoDB, \textbf{Extract, Transform, Load (ETL)} process.
+%         \item[-] \textbf{Web Visualizations:} HTML, CSS, Bootstrap framework, JavaScript charting, Geomapping with Leaflet.js.
+%         \item[-] \textbf{Advanced Data Analysis Topics:} Tableau, Data ethics, Hadoop, Machine Learning/Deep Learning.
+%     \end{enumerate}
+%     \item Guided learners through \textbf{real-world projects} tailored to industry sectors like \textbf{Finance}, \textbf{Human Resources}, \textbf{Healthcare}, and \textbf{Government}.
+% \end{highlights}
+
+%         \end{twocolentry}
+     \vspace{0.1 cm}
+\begin{twocolentry}{
+            Toronto, ON
+
+        May 2019 – Jan 2023
+        }
+            \textbf{Back-End Developer (part-time)}, Tamra-IoT
+      \begin{highlights}
+    \item \textbf{Architected} secure and scalable \textbf{IoT platforms} by integrating \textbf{MQTT over TLS}, \textbf{cloud infrastructure}, and \textbf{mobile control interfaces}, enhancing real-time communication and remote device management.
+
+    \item \textbf{Designed} and deployed \textbf{Over-The-Air (OTA) firmware update mechanisms} and implemented \textbf{robust IoT device management systems}, significantly reducing maintenance costs and improving system resilience. \href{https://ieeexplore.ieee.org/abstract/document/9824989}{Publication}
+\end{highlights}
+
+        \end{twocolentry}
+
+
+
+        % \vspace{-0.2 cm}
+
+  
+
+\vspace{-0.3cm}
+    \section{Education}
+
+
+
+        
+        \begin{threecolentry}{\textbf{PhD}}{
+            Jan 2020 – Mar 2025
+        }
+            \textbf{Ontario Tech University}, Electrical and Computer Engineering
+            \begin{highlights}
+                \item GPA: 4.22/4.3 \href{https://learner.mycreds.ca/sharelink/f677e6e2-700e-4b53-a439-30bacbe9bde9/56c2684a-c6e8-480c-9fa4-93d6d649d3fe}{Link to Transcript issued by Ontario Tech University}
+                \item \textbf{\href{https://ontariotechu.scholaris.ca/items/ae8fb02b-3cff-4738-aa4b-96834b35dc54/full}{Thesis}}: SensorsConnect: World Wide Web for Internet of Things.
+            \end{highlights}
+        \end{threecolentry}
+
+\begin{threecolentry}{\textbf{MSc}}{
+           Feb 2013 – Jan 2018
+        }
+            \textbf{Benha University}, Electrical Engineering
+            % \begin{highlights}
+            %     \item \textbf{Thesis:} Multi-modulation Low Earth Orbit Satellite Based on Software Defined Radio
+            %     % \item Implemented and tested Mth Root Mth Power SNR MPSK Estimator using USRP kit.
+            % \end{highlights}
+        \end{threecolentry}
+
+
+\begin{threecolentry}{\textbf{BSc}}{
+            Sep  2008 – Jun 2012
+        }
+             \textbf{Benha University}, Electrical Engineering
+        %    \begin{highlights}
+        %     \item \textbf{GPA:} 85\% \ (\textbf{3.3/4})
+        %     \item \textbf{Capstone:} \textit{EagleEyes} – \textbf{Mine Detection System} using a \textbf{Quadcopter (Drone)}
+        % \end{highlights}
+
+        \end{threecolentry}
+
+
+
+% \vspace{-0.4cm}
+    
+    
+%     \section{Selected  Publications}
+
+
+
+        
+%         \begin{samepage}
+%             \begin{twocolentry}{
+%                 Mar 2025
+%             }
+%                 \textbf{Agentic Search Engine for Real-Time IoT Data} \href{https://arxiv.org/abs/2503.12255}{arXiv}
+
+%                 \vspace{0.10 cm}
+
+%                 \mbox{\textbf{\textit{Abdelrahman Elewah}}}, \mbox{Khalid Elgazzar}
+                
+
+        
+%             \end{twocolentry}
+% \vspace{0.40 cm}
+%                         \begin{twocolentry}{
+%                 Nov 2024
+%             }
+%                 \textbf{SensorsConnect Framework: World-Wide Web for Internet of Things} \href{https://ieeexplore.ieee.org/abstract/document/10752393}{IEEE Access}
+
+%                 \vspace{0.10 cm}
+%                 \mbox{\textbf{\textit{Abdelrahman Elewah}}}, \mbox{Khalid Elgazzar}
+                
+            
+            
+
+        
+%             \end{twocolentry}
+% \vspace{-0.20 cm}
+%             %                         \begin{twocolentry}{
+%             %     Jun 2021
+%             % }
+%             %     \textbf{3D-RadViz: Three dimensional radial visualization for large-scale data visualization} \href{https://ieeexplore.ieee.org/document/9504983}{CEC}
+
+%             %     \vspace{0.10 cm}
+%             %     \mbox{\textbf{\textit{Abdelrahman Elewah}}}
+%             %     , \mbox{Abeer A Badawi}, \mbox{Haytham Khalil}, \mbox{Shahryar Rahnamayan}, \mbox{Khalid Elgazzar}
+%             %     \vspace{0.10 cm}
+
+        
+%             % \end{twocolentry}
+%         \end{samepage}
+
+
+    \vspace{-0.2cm}
+    \section{Projects}
+
+
+\begin{onecolentry}
+\textbf{Localelive: Agentic Search Engine for Real-Time IoT Data} | \href{https://github.com/SensorsConnect/IoT-Agentic-Search-Engine}{GitHub} | \href{https://localelive.space/}{Live Demo} | \href{https://www.mdpi.com/1424-8220/25/19/5995}{Publication}
+\begin{highlights}
+    \item \textbf{Developed} a real-time IoT search engine powered by \textbf{LLMs and RAG}, enabling users to query complex sensor data using natural language, improving query efficiency and decision making. %in real-time.
+    
+    \item \textbf{Implemented} a semantic search pipeline using \textbf{Sentence-BERT and HNSW indexing}, reducing query latency by 73\% and enhancing relevance in top-k retrieval across diverse IoT datasets.
+    
+    \item \textbf{Managed} over 37,000 real-time IoT documents from 500+ service types in \textbf{MongoDB} with geo-indexing, ensuring scalable and location-aware data access for time-sensitive decision-making.
+    
+    \item \textbf{Achieved} 92\% top-1 accuracy in complex intent detection and information retrieval, surpassing systems like Gemini, and significantly improving user satisfaction and task completion rates. %in usability tests.
+        
+    \item \textbf{Deployed} on \textbf{AWS} using FastAPI, LangGraph, Docker Compose, and Traefik for modular retrieval and production-grade orchestration.
+
+    
+\end{highlights}
+\end{onecolentry}
+
+
+
+
+\begin{onecolentry}
+\textbf{Story-to-Movie Recommender Chatbot (RAG-based)} | \href{https://github.com/elewah/Chatbot-Story-To-Movie}{GitHub} | \href{https://chatbot-story-to-movie.streamlit.app/}{Live Demo}
+\begin{highlights}
+\item Developed a \textbf{retrieval-augmented generation (RAG)} system combining vector search with LLMs to deliver context-aware answers, reducing hallucination rates by \textbf{~30\%}.
+\item Built a \textbf{semantic search pipeline}, enabling retrievals from 1K+ documents.
+% \item Integrated with \texttt{Streamlit} for real-time web-based interaction; deployed with Docker for reproducibility across dev and prod environments.
+\item Leveraged \textbf{Pandas}, \textbf{OpenAI API}, and \textbf{Tenacity} to ensure resilient API usage and robust data handling under real-time loads.
+\end{highlights}
+\end{onecolentry}
+
+
+       
+
+
+
+  % \vspace{0.1 cm}
+% \begin{twocolentry}{\href{https://github.com/elewah/Apply-Lightweight-Fine-Tuning-to-a-Foundation-Model}{github.com/repo}}
+% \textbf{Apply Lightweight Fine-Tuning to a Foundation Model}
+% \begin{highlights}
+% \item Built an \textbf{end-to-end NLP pipeline} using \textbf{PyTorch} and \textbf{Hugging Face Transformers}: loaded a pre-trained \textbf{GPT-2} model and prepared the \textbf{AG News} dataset for news-topic classification.
+% \item Applied \textbf{parameter-efficient fine-tuning (PEFT)} using \textbf{LoRA adapters} to fine-tune GPT-2 while keeping the base model's weights frozen.
+% \item Achieved a significant improvement: \textbf{boosted accuracy from 83.16\% to 88.95\%} on the AG News dataset using LoRA-fine-tuning.
+% \item Built a modular workflow: created training, PEFT fine-tuning, and inference pipelines in \textbf{Jupyter Notebooks}; containerized the project with \textbf{VSCode DevContainers} and \textbf{Docker}.
+% \end{highlights}
+% \end{twocolentry}
+
+
+\begin{onecolentry}
+\textbf{Apply Lightweight Fine-Tuning to a Foundation Model} | \href{https://github.com/elewah/Apply-Lightweight-Fine-Tuning-to-a-Foundation-Model}{GitHub}
+\begin{highlights}
+
+\item \textbf{Built} an end-to-end NLP pipeline using \textbf{PyTorch}, \textbf{TensorFlow} and \textbf{Hugging Face Transformers}: loaded a pre-trained \textbf{GPT-2} model and prepared the \textbf{AG News} dataset for news classification.
+
+\item \textbf{Applied} LoRA-based parameter-efficient fine-tuning (PEFT), reducing training time and memory usage by over 60\% while improving AG News accuracy from 83.16\% to 88.95\%.
+
+% \item \textbf{Built} a modular workflow: created training, PEFT fine-tuning, and inference pipelines in \textbf{Jupyter Notebooks}; containerized the project with \textbf{VSCode DevContainers} and \textbf{Docker}, \textbf{streamlining reproducibility and enabling seamless environment setup across systems}.
+
+\end{highlights}
+\end{onecolentry}
+
+
+\begin{onecolentry}
+    \textbf{RadViz-Plotly} | \href{https://github.com/elewah/RadViz-Plotly}{GitHub}
+    \begin{highlights}
+        \item \textbf{Developed} \textbf{RadViz-Plotly}, an \textbf{open-source Python package} that generates \textbf{2D and 3D Radial Visualization (RadViz)} plots for \textbf{high-dimensional datasets}, enabling broader accessibility to dimensionality reduction techniques in research and industry. \href{https://ieeexplore.ieee.org/document/9504983}{Publication}
+        
+        \item \textbf{Enabled} data scientists to explore complex distributions interactively using \textbf{Plotly}, improving model explainability and analytics workflows.
+    \end{highlights}
+\end{onecolentry}
+
+
+
+
+% \section{Research Grants and Funding Secured}
+% \begin{highlights}
+% \item \textbf{Doctoral Funding Package}, Ontario Tech University (2020--2023):\\
+%   Competitive financial support totaling \textbf{\$132,800 CAD} over four years for Ph.D. studies in Electrical and Computer Engineering.
+% \item \textbf{Seed Funding – InnoEgypt Program}, Egypt (2020):\\
+%   Received \textbf{€12,500} in seed capital for the launch and growth of \href{https://tamra-iot.com/}{Tamra IoT}, a platform simplifying IoT adoption for students, engineers, and makers.
+% \end{highlights}
+
+
+\end{document}

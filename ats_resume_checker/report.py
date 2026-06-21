@@ -16,6 +16,17 @@ def render_console(report: AtsReport) -> str:
     ]
     for check in report.checks:
         lines.append(f"- [{check.status.upper()}] {check.title}: {check.message}")
+    if report.jd_match:
+        jd = report.jd_match
+        pct = f"{jd['match_pct']:.0%}"
+        lines.extend([
+            "",
+            f"JD Match: {pct}  ({len(jd['matched'])}/{jd['total']} keywords matched)",
+        ])
+        if jd["matched"]:
+            lines.append(f"  Matched: {', '.join(jd['matched'])}")
+        if jd["missing"]:
+            lines.append(f"  Missing: {', '.join(jd['missing'])}")
     top_fixes = [check for check in report.checks if check.status in {"fail", "warn"} and check.fix]
     if top_fixes:
         lines.extend(["", "Top fixes:"])
@@ -45,8 +56,22 @@ def render_markdown(report: AtsReport) -> str:
         lines.append(
             f"| {check.status.upper()} | {_escape(check.title)} | {_escape(check.message)} | {_escape(check.fix)} |"
         )
+    extra: list[str] = []
+    if report.jd_match:
+        jd = report.jd_match
+        pct = f"{jd['match_pct']:.0%}"
+        extra = [
+            "",
+            "## JD Match",
+            "",
+            f"**Match:** {pct} ({len(jd['matched'])}/{jd['total']} keywords)",
+            "",
+            f"**Matched:** {', '.join(jd['matched']) if jd['matched'] else 'None'}",
+            "",
+            f"**Missing:** {', '.join(jd['missing']) if jd['missing'] else 'None'}",
+        ]
     lines.extend(
-        [
+        extra + [
             "",
             "## Sections",
             "",
