@@ -17,3 +17,4 @@ extracted-text.txt
 *.synctex.gz
 *.out
 *.tmp
+sessions/

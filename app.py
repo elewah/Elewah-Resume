@@ -352,12 +352,20 @@ def _render_ai_section(st, max_pages: int) -> None:
 
     run_agent_button = st.button("Run AI Agent", type="primary")
 
+    # Verbose tool output toggle — persisted in session state
+    verbose_trace = st.toggle(
+        "Show tool call details",
+        value=st.session_state.get("verbose_trace", True),
+        key="verbose_trace",
+        help="Show Bash commands, file reads, and edits inline as the agent runs.",
+    )
+
     if run_agent_button:
         import queue as _queue
         import threading as _threading
 
         st.session_state.agent_result = None
-        msg_q: _queue.Queue[str | None] = _queue.Queue()
+        msg_q: _queue.Queue = _queue.Queue()
         result_holder: dict = {}
         error_holder: dict = {}
 
@@ -365,6 +373,7 @@ def _render_ai_section(st, max_pages: int) -> None:
         _tex_bytes = st.session_state.get("uploaded_tex_bytes")
         _pdf_bytes = st.session_state.get("uploaded_pdf_bytes")
         _keywords = st.session_state.get("uploaded_keywords") or []
+        _jd_keywords = st.session_state.get("uploaded_jd_keywords") or []
 
         if not _pdf_bytes:
             st.error("Run the ATS check first to upload your files before using the AI agent.")
@@ -386,6 +395,7 @@ def _render_ai_section(st, max_pages: int) -> None:
                     model=model,
                     max_pages=max_pages,
                     keywords=_keywords,
+                    jd_keywords=_jd_keywords or None,
                     api_key=api_key,
                     base_url=base_url or None,
                     aws_access_key_id=aws_access_key_id,
@@ -402,6 +412,8 @@ def _render_ai_section(st, max_pages: int) -> None:
         t = _threading.Thread(target=_run_in_thread, daemon=True)
         t.start()
 
+        _TOOL_ICONS = {"Bash": "⚙️", "Edit": "✏️", "Read": "📖", "Write": "💾"}
+
         with st.status("AI agent is working…", expanded=True) as status:
             while True:
                 try:
@@ -410,7 +422,24 @@ def _render_ai_section(st, max_pages: int) -> None:
                     continue
                 if msg is None:
                     break
-                st.markdown(msg)
+                from ats_resume_checker.agent import AgentEvent as _AgentEvent
+                if isinstance(msg, str):
+                    st.markdown(msg)
+                elif msg.kind == "text":
+                    st.markdown(msg.content)
+                elif msg.kind == "tool_call" and verbose_trace:
+                    icon = _TOOL_ICONS.get(msg.data.get("tool", ""), "🔧")
+                    tool = msg.data.get("tool", "tool")
+                    st.markdown(f"{icon} **{tool}**: `{msg.content}`")
+                elif msg.kind == "tool_result" and verbose_trace:
+                    is_err = msg.data.get("is_error")
+                    label = "Error output" if is_err else "Output"
+                    with st.expander(label, expanded=bool(is_err)):
+                        st.code(msg.content, language="text")
+                elif msg.kind == "usage":
+                    st.caption(f"tokens: {msg.content}")
+                elif msg.kind == "usage_final":
+                    st.info(f"**{msg.content}**")
             status.update(label="Agent finished", state="complete", expanded=False)
 
         t.join()
@@ -444,6 +473,23 @@ def _render_agent_result(st, result) -> None:
     col_final.metric("Final Score", f"{result.final_score}/100")
     col_delta.metric("Improvement", f"{delta:+d} pts", delta_color="normal")
 
+    # Usage / cost metrics
+    usage = getattr(result, "usage", None)
+    if usage and (usage.total_tokens > 0 or usage.total_cost_usd is not None):
+        st.subheader("Token Usage & Cost")
+        ucols = st.columns(5)
+        ucols[0].metric("Input tokens", f"{usage.input_tokens:,}")
+        ucols[1].metric("Output tokens", f"{usage.output_tokens:,}")
+        ucols[2].metric("Cache read", f"{usage.cache_read_tokens:,}")
+        ucols[3].metric("Turns", str(usage.num_turns))
+        cost_display = f"${usage.total_cost_usd:.4f}" if usage.total_cost_usd is not None else "—"
+        ucols[4].metric("Cost (USD)", cost_display)
+
+    if result.session_dir:
+        st.caption(f"Session saved to: `{result.session_dir}`")
+
+    events = getattr(result, "events", [])
+
     if result.progress_messages:
         st.subheader("Agent Reasoning")
         with st.expander("View agent's step-by-step reasoning", expanded=False):
@@ -451,6 +497,39 @@ def _render_agent_result(st, result) -> None:
                 st.markdown(msg)
     else:
         st.info("The agent made no further improvements (score was already optimal).")
+
+    if events:
+        _TOOL_ICONS = {"Bash": "⚙️", "Edit": "✏️", "Read": "📖", "Write": "💾"}
+        tool_calls = [e for e in events if e.kind == "tool_call"]
+        bash_n = sum(1 for e in tool_calls if e.data.get("tool") == "Bash")
+        edit_n = sum(1 for e in tool_calls if e.data.get("tool") == "Edit")
+        read_n = sum(1 for e in tool_calls if e.data.get("tool") == "Read")
+        write_n = sum(1 for e in tool_calls if e.data.get("tool") == "Write")
+        usage_part = ""
+        if usage and usage.total_tokens > 0:
+            cost_str = f"  💰 ${usage.total_cost_usd:.4f}" if usage.total_cost_usd is not None else ""
+            usage_part = f"  —  {usage.total_tokens:,} tokens{cost_str}"
+        summary = (
+            f"{len(tool_calls)} tool calls — "
+            f"⚙️ Bash: {bash_n}  ✏️ Edit: {edit_n}  📖 Read: {read_n}  💾 Write: {write_n}"
+            f"{usage_part}"
+        )
+        st.subheader("Full Session Trace")
+        with st.expander(summary, expanded=False):
+            for event in events:
+                if event.kind == "text":
+                    st.markdown(event.content)
+                elif event.kind == "tool_call":
+                    tool = event.data.get("tool", "tool")
+                    icon = _TOOL_ICONS.get(tool, "🔧")
+                    st.markdown(f"{icon} **{tool}**: `{event.content}`")
+                elif event.kind == "tool_result":
+                    is_err = event.data.get("is_error")
+                    label = "Error output" if is_err else "Output"
+                    with st.expander(label, expanded=bool(is_err)):
+                        st.code(event.content, language="text")
+                elif event.kind in ("usage", "usage_final"):
+                    st.caption(event.content)
 
     if result.png_pages:
         st.subheader("Visual PDF Preview")
