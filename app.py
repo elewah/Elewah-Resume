@@ -29,6 +29,7 @@ def main() -> None:
     st.session_state.setdefault("uploaded_pdf_bytes", None)
     st.session_state.setdefault("uploaded_keywords", None)
     st.session_state.setdefault("uploaded_jd_keywords", None)
+    st.session_state.setdefault("uploaded_jd_text", None)
 
     with st.sidebar:
         st.header("Inputs")
@@ -79,15 +80,17 @@ def main() -> None:
         # Clear stale agent result whenever the user re-runs the ATS check
         st.session_state.agent_result = None
 
-        # Resolve JD keywords from text area or URL
+        # Resolve JD text + keywords from text area or URL
         jd_keywords: list[str] = []
+        jd_text_resolved: str | None = None
         if jd_text_input and jd_text_input.strip():
-            jd_keywords = _extract_jd_keywords(jd_text_input)
+            jd_text_resolved = jd_text_input.strip()
+            jd_keywords = _extract_jd_keywords(jd_text_resolved)
         elif jd_url_input and jd_url_input.strip():
             with st.spinner("Fetching job description from URL…"):
                 try:
-                    jd_text_fetched = _fetch_jd_url(jd_url_input.strip())
-                    jd_keywords = _extract_jd_keywords(jd_text_fetched)
+                    jd_text_resolved = _fetch_jd_url(jd_url_input.strip())
+                    jd_keywords = _extract_jd_keywords(jd_text_resolved)
                 except ValueError as exc:
                     st.warning(f"Could not fetch JD from URL: {exc}. Proceeding without JD matching.")
 
@@ -104,6 +107,7 @@ def main() -> None:
             st.session_state.uploaded_pdf_bytes = pdf_file.getvalue()
             st.session_state.uploaded_keywords = parse_keywords(raw_keywords)
             st.session_state.uploaded_jd_keywords = jd_keywords or None
+            st.session_state.uploaded_jd_text = jd_text_resolved or None
         except UnicodeDecodeError:
             st.error("Could not read the uploaded `.tex` file as UTF-8 text.")
             return
@@ -374,6 +378,7 @@ def _render_ai_section(st, max_pages: int) -> None:
         _pdf_bytes = st.session_state.get("uploaded_pdf_bytes")
         _keywords = st.session_state.get("uploaded_keywords") or []
         _jd_keywords = st.session_state.get("uploaded_jd_keywords") or []
+        _jd_text = st.session_state.get("uploaded_jd_text") or None
 
         if not _pdf_bytes:
             st.error("Run the ATS check first to upload your files before using the AI agent.")
@@ -396,6 +401,7 @@ def _render_ai_section(st, max_pages: int) -> None:
                     max_pages=max_pages,
                     keywords=_keywords,
                     jd_keywords=_jd_keywords or None,
+                    jd_text=_jd_text,
                     api_key=api_key,
                     base_url=base_url or None,
                     aws_access_key_id=aws_access_key_id,
@@ -538,12 +544,27 @@ def _render_agent_result(st, result) -> None:
             st.image(png_bytes, caption=f"Page {i + 1}", use_container_width=True)
 
     st.subheader("Download Improved Resume")
-    st.download_button(
-        "Download improved .tex",
-        data=result.improved_tex.encode("utf-8"),
-        file_name="resume_improved.tex",
-        mime="text/plain",
-    )
+    col_tex, col_pdf = st.columns(2)
+    with col_tex:
+        st.download_button(
+            "Download improved .tex",
+            data=result.improved_tex.encode("utf-8"),
+            file_name="resume_improved.tex",
+            mime="text/plain",
+            use_container_width=True,
+        )
+    with col_pdf:
+        pdf_bytes = getattr(result, "pdf_bytes", b"")
+        if pdf_bytes:
+            st.download_button(
+                "Download improved .pdf",
+                data=pdf_bytes,
+                file_name="resume_improved.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
+        else:
+            st.caption("PDF not available — LaTeX compilation may have failed.")
 
 
 if __name__ == "__main__":

@@ -164,6 +164,7 @@ class AgentResult:
     events: list[AgentEvent] = field(default_factory=list)
     session_dir: str | None = None
     usage: UsageSummary = field(default_factory=UsageSummary)
+    pdf_bytes: bytes = b""
 
 
 # ---------------------------------------------------------------------------
@@ -192,6 +193,7 @@ def _init_session(
     initial_report: AtsReport,
     keywords: list[str],
     jd_keywords: list[str],
+    jd_text: str | None,
     model: str,
     max_turns: int,
     prompt: str,
@@ -209,6 +211,8 @@ def _init_session(
         (inputs_dir / "resume.pdf").write_bytes(pdf_bytes)
         if keywords:
             (inputs_dir / "keywords.txt").write_text("\n".join(keywords), encoding="utf-8")
+        if jd_text:
+            (inputs_dir / "jd.txt").write_text(jd_text, encoding="utf-8")
         if jd_keywords:
             (inputs_dir / "jd_keywords.txt").write_text("\n".join(jd_keywords), encoding="utf-8")
         (inputs_dir / "initial_report.json").write_text(
@@ -315,6 +319,7 @@ async def _run_agent_async(
     max_pages: int,
     keywords: list[str],
     jd_keywords: list[str],
+    jd_text: str | None,
     session_base: Path,
     api_key: str | None = None,
     base_url: str | None = None,
@@ -411,6 +416,7 @@ async def _run_agent_async(
         initial_report=initial_report,
         keywords=keywords,
         jd_keywords=jd_keywords,
+        jd_text=jd_text,
         model=model,
         max_turns=max_turns,
         prompt=prompt,
@@ -603,10 +609,15 @@ async def _run_agent_async(
             pass
 
     png_pages: list[bytes] = []
+    final_pdf_bytes: bytes = b""
     if pdf_path.exists():
         try:
             png_pages = pdf_pages_to_png(pdf_path)
         except PdfToolError:
+            pass
+        try:
+            final_pdf_bytes = pdf_path.read_bytes()
+        except Exception:
             pass
 
     if session_dir_path is not None:
@@ -630,6 +641,7 @@ async def _run_agent_async(
         progress_messages=progress_messages,
         events=events,
         session_dir=str(session_dir_path) if session_dir_path else None,
+        pdf_bytes=final_pdf_bytes,
         usage=usage,
     )
 
@@ -647,6 +659,7 @@ def run_improvement_agent(
     max_pages: int = 2,
     keywords: list[str] | None = None,
     jd_keywords: list[str] | None = None,
+    jd_text: str | None = None,
     session_base: Path | str | None = None,
     api_key: str | None = None,
     base_url: str | None = None,
@@ -685,6 +698,7 @@ def run_improvement_agent(
                     max_pages=max_pages,
                     keywords=keywords or [],
                     jd_keywords=jd_keywords or [],
+                    jd_text=jd_text,
                     session_base=_session_base,
                     api_key=api_key,
                     base_url=base_url,

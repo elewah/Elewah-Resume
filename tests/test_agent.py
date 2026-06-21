@@ -117,6 +117,9 @@ def _run_agent(mock_sdk, mock_types, tex=FAKE_TEX, pdf=FAKE_PDF_BYTES,
 
     No api_key parameter — authentication is handled by the claude CLI.
     """
+    import tempfile as _tempfile
+    # Prevent tests from writing fake sessions into the production sessions/ folder.
+    kwargs.setdefault("session_base", _tempfile.mkdtemp())
     fake_report = fake_report or _make_fake_report()
     with mock.patch.dict(sys.modules, {
         "claude_agent_sdk": mock_sdk,
