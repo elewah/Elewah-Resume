@@ -34,11 +34,43 @@ class UiHelperTests(unittest.TestCase):
         with mock.patch.object(ui, "extract_pdf_text", return_value=extracted), mock.patch.object(
             ui, "read_pdf_info", return_value={"pages": 2, "encrypted": "no", "javascript": "no"}
         ):
-            analysis = ui.analyze_uploaded_resume(tex_bytes, b"%PDF-1.7", keywords=["Python", "RAG"])
+            analysis = ui.analyze_uploaded_resume(
+                {"main.tex": tex_bytes}, b"%PDF-1.7", keywords=["Python", "RAG"]
+            )
 
         self.assertEqual(analysis.extracted_text, extracted)
         self.assertEqual(analysis.pdf_info["pages"], 2)
         self.assertIn("Python", analysis.report.keywords["found"])
+
+    def test_analyze_uploaded_resume_resolves_split_tex_files(self):
+        """A main.tex that \\input{}s other files should see their combined text."""
+        main_tex = rb"\input{preamble}\begin{document}\input{sections/summary}\end{document}"
+        preamble_tex = rb"\input{glyphtounicode}\pdfgentounicode=1"
+        summary_tex = rb"\section{Summary}\nBuilt scalable Python and AWS systems."
+
+        with mock.patch.object(ui, "extract_pdf_text", return_value="Summary text"), mock.patch.object(
+            ui, "read_pdf_info", return_value={"pages": 1}
+        ):
+            analysis = ui.analyze_uploaded_resume(
+                {
+                    "main.tex": main_tex,
+                    "preamble.tex": preamble_tex,
+                    "sections/summary.tex": summary_tex,
+                },
+                b"%PDF-1.7",
+            )
+
+        unicode_check = next(c for c in analysis.report.checks if c.id == "parse.unicode_mapping")
+        self.assertEqual(unicode_check.status, "pass")
+
+    def test_map_uploaded_tex_files_places_sections_by_convention(self):
+        mapped = ui.map_uploaded_tex_files(
+            [("main.tex", b"a"), ("preamble.tex", b"b"), ("experience.tex", b"c")]
+        )
+        self.assertEqual(
+            mapped,
+            {"main.tex": b"a", "preamble.tex": b"b", "sections/experience.tex": b"c"},
+        )
 
     def test_status_counts_and_top_fixes(self):
         report = mock.Mock()
