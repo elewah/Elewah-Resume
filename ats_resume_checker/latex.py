@@ -75,6 +75,56 @@ def normalize_whitespace(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+_INCLUDE_RE = re.compile(r"\\(?:input|include)\{([^{}]+)\}")
+
+
+def resolve_includes(tex_path: Path, _seen: Optional[set[Path]] = None) -> str:
+    """Read tex_path and recursively inline \\input{...}/\\include{...} targets.
+
+    Source-based ATS checks (unicode-mapping/package detection, section and
+    keyword diagnostics) only ever see the literal text handed to them. If a
+    resume is split across multiple files via \\input, those checks need the
+    fully assembled source rather than just the top-level file's \\input lines.
+    Each \\input/\\include reference to a file that exists alongside the
+    including file is replaced with that target's resolved contents (default
+    .tex extension). References that don't resolve to a project file — e.g.
+    `\\input{glyphtounicode}`, a TeX system macro pulled from texmf, not a
+    project file — are left as literal text instead of being dropped, since
+    checks like parse.unicode_mapping string-search for the command name
+    itself. Lines without a reference are returned unchanged, so a single
+    self-contained .tex file round-trips byte-for-byte. Include cycles return
+    empty for the repeated branch rather than raising, so one bad reference
+    doesn't take down the whole check.
+    """
+    tex_path = tex_path.resolve()
+    seen = set(_seen) if _seen else set()
+    if tex_path in seen:
+        return ""
+    seen.add(tex_path)
+
+    try:
+        raw = tex_path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+    def _replace(match: "re.Match[str]") -> str:
+        target_name = match.group(1)
+        if not target_name.endswith(".tex"):
+            target_name += ".tex"
+        target = (tex_path.parent / target_name).resolve()
+        if not target.is_file():
+            return match.group(0)
+        return resolve_includes(target, seen)
+
+    out_lines = []
+    for original, stripped in zip(raw.splitlines(), strip_comments(raw).splitlines()):
+        if _INCLUDE_RE.search(stripped):
+            out_lines.append(_INCLUDE_RE.sub(_replace, stripped))
+        else:
+            out_lines.append(original)
+    return "\n".join(out_lines)
+
+
 def compile_latex(tex_path: Path, compiler: Optional[str] = None) -> Path:
     """Compile a LaTeX file and return the expected PDF path."""
     tex_path = tex_path.resolve()

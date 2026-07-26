@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from .checks import DEFAULT_KEYWORDS, run_checks
-from .latex import BuildError, compile_latex
+from .latex import BuildError, compile_latex, resolve_includes
 from .pdf_tools import PdfToolError, extract_pdf_text, read_pdf_info
 from .report import has_failures, render_console, write_json, write_markdown
 from .jd_tools import extract_keywords as _extract_jd_keywords, fetch_jd_from_url as _fetch_jd_url
@@ -136,7 +136,7 @@ def _run_latex(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
         return 2
 
     try:
-        tex_source = tex_path.read_text(encoding="utf-8")
+        tex_source = resolve_includes(tex_path)
     except UnicodeDecodeError:
         print(f"Error: Could not read {tex_path} as UTF-8.", file=sys.stderr)
         return 2
