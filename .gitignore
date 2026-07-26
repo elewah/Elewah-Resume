@@ -18,3 +18,5 @@ extracted-text.txt
 *.out
 *.tmp
 sessions/
+.DS_Store
+.claude/skills/*-workspace/
