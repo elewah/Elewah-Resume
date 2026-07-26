@@ -1,0 +1,50 @@
+{
+  "skill_name": "resume-writer",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "eval-plaintext-paste",
+      "prompt": "I don't have a LaTeX resume yet, I just have my old resume as plain text. Can you turn this into a LaTeX resume using this repo's structure? Here it is:\n\nMaria Chen\nSeattle, WA | maria.chen@example.com | (206) 555-0142 | linkedin.com/in/mariachen | github.com/mchen-dev\n\nSummary:\nProduct manager with 5 years in B2B SaaS, focused on developer tools and API products.\n\nExperience:\nSenior Product Manager, Fogline Analytics, Seattle, WA (Aug 2022 - Present)\n- Launched a self-serve API tier that grew paid API usage 3x in 12 months.\n- Ran discovery and shipped a webhook delivery dashboard now used by 500+ customers.\n- Managed a roadmap across 2 engineering pods and 1 designer.\n\nProduct Manager, Fogline Analytics, Seattle, WA (Jan 2020 - Jul 2022)\n- Owned the onboarding flow redesign, cutting time-to-first-value from 9 days to 2 days.\n- Partnered with sales engineering to define enterprise SSO requirements.\n\nEducation:\nB.A. Economics, University of Washington (2015 - 2019)\n\nSkills:\nSQL, Amplitude, Figma, Jira, API design, A/B testing, SSO/SAML",
+      "expected_output": "A working main.tex + preamble.tex + sections/*.tex set (header, summary, skills, experience, education — no projects since none were given) that compiles and contains exactly Maria Chen's real details, with no invented employers/dates/achievements.",
+      "files": [],
+      "expectations": [
+        "Produces a main.tex that compiles to a PDF with latexmk with no errors",
+        "preamble.tex is byte-identical to the skill's bundled assets/preamble.tex template except for the name substitution (with_skill only — proves the risky macro region was never regenerated from memory)",
+        "The generated resume's extracted text contains all of Maria Chen's real facts: full name, email, phone, both employer/title/date lines at Fogline Analytics, the University of Washington degree, and the listed skills",
+        "No sections/projects.tex or \\input{sections/projects} was created, since the source gave no projects",
+        "No fabricated content: no employer, degree, date, or achievement appears that wasn't in the pasted source text",
+        "ats-check reports no FAIL checks other than keywords.coverage (which is expected to fail — the CLI's default keyword list is domain-specific to AI/ML and irrelevant to a PM resume)"
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "eval-conversational-background",
+      "prompt": "hey can you help me build a resume? I don't have anything written down yet. so I'm Alex Rivera, I currently work as a Data Analyst at Northstar Retail here in Denver, been there a little over 2 years now. before that I did about a year and a half at a small startup called Ledgerly doing similar analytics work but I honestly don't remember the exact start/end dates anymore. I mostly use SQL, Python, and Tableau day to day, and I built a churn prediction model at Northstar that the team still uses. I've got a B.S. in Statistics from Colorado State. no LinkedIn or portfolio site to link, just want something clean I can start submitting. my email is alex.rivera@example.com",
+      "expected_output": "The skill should ask Alex for the missing/vague details (exact dates at Ledgerly, phone number if wanted) rather than inventing them, and only generate the resume files once it has enough real information — it should not fabricate placeholder dates or a fictitious LinkedIn/portfolio link since the user said they don't have one.",
+      "files": [],
+      "expectations": [
+        "Does not fabricate specific start/end dates for the Ledgerly role, since the user said they don't remember them — either asks for them or otherwise avoids inventing a specific date range",
+        "Does not fabricate a LinkedIn or portfolio URL, since the user explicitly said they have neither",
+        "Does not fabricate a phone number, since none was given",
+        "Does not fabricate a Ledgerly job title, exact tenure, or bullet achievements beyond 'similar analytics work'",
+        "If any resume files were generated, every fact in them traces to something Alex actually said (Northstar Retail, Denver, Data Analyst, ~2 years, SQL/Python/Tableau, the churn prediction model, Ledgerly, B.S. Statistics from Colorado State, the given email)",
+        "Behaves sensibly for a single-turn eval: either stops and clearly lists what it would ask the user, or generates a resume using only the concretely-provided facts"
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "eval-docx-migration",
+      "prompt": "I have my resume as a Word doc (sam_taylor_resume.docx, it's in this directory) — can you convert it into this repo's LaTeX resume format so I can run the ATS checker on it?",
+      "expected_output": "The skill extracts sam_taylor_resume.docx's real content (Sam Taylor, backend engineer at Northwind Commerce and Riverbend Software, B.S. Computer Science from UT Austin) via the docx skill's pandoc method, then produces a working main.tex + preamble.tex + sections/*.tex set with that exact content, no invented details.",
+      "files": ["sam_taylor_resume.docx"],
+      "expectations": [
+        "Successfully extracts the .docx content (via pandoc or another valid method) rather than failing or asking the user to paste the text instead",
+        "Produces a main.tex that compiles to a PDF with latexmk with no errors",
+        "preamble.tex is byte-identical to the skill's bundled assets/preamble.tex template except for the name substitution (with_skill only)",
+        "The generated resume's extracted text contains all of Sam Taylor's real facts: name, contact info, both jobs (Northwind Commerce, Riverbend Software) with correct dates and bullets, the UT Austin degree, and the skills list",
+        "No fabricated content beyond what's in the .docx",
+        "ats-check reports no FAIL checks other than keywords.coverage (expected — the CLI's default keyword list is domain-specific to AI/ML, irrelevant to a backend engineer resume)"
+      ]
+    }
+  ]
+}
