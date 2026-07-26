@@ -77,6 +77,10 @@ Compile and analyze a LaTeX resume:
 ats-check main.tex
 ```
 
+If your resume is split across multiple files (e.g. `main.tex` using `\input{}`/`\include{}`
+to pull in a preamble and per-section files), the CLI resolves those references automatically
+so source-based checks still see the full assembled text — no extra flags needed.
+
 Analyze an existing PDF:
 
 ```sh
@@ -103,7 +107,7 @@ ats-check main.tex --keyword Python --keyword RAG --keyword "model deployment"
 
 ## Streamlit UI
 
-The Streamlit UI is local-first and upload-only: it does not compile LaTeX. Upload the original `.tex` source and the matching generated `.pdf`; the app then runs the same ATS checks as the CLI using Poppler extraction.
+The Streamlit UI is local-first and upload-only: it does not compile LaTeX. Upload the generated `.pdf` and, for source-based checks, the `.tex` source; the app then runs the same ATS checks as the CLI using Poppler extraction. If your resume is split across multiple files via `\input{}`/`\include{}` (e.g. a main file plus a preamble and per-section files), select all of them together in the file picker — the app maps each one back to its expected relative path and resolves the includes automatically, the same way the CLI does. A single self-contained `.tex` file still works too.
 
 Start the UI:
 
@@ -115,6 +119,12 @@ Or run Streamlit manually:
 
 ```sh
 streamlit run app.py
+```
+
+Stop it:
+
+```sh
+./scripts/stop-ui.sh
 ```
 
 The UI includes:

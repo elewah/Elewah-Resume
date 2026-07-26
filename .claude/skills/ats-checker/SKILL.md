@@ -22,6 +22,16 @@ ats-check main.tex --max-pages 1 --keyword python --keyword kubernetes
 The CLI compiles the `.tex` file (unless `--no-compile`), extracts text from the PDF using
 Poppler's `pdftotext`, reads metadata via `pdfinfo`, then runs all checks.
 
+`main.tex` in this repo is a thin `\input` shell over `preamble.tex` + `sections/*.tex` (see
+`CLAUDE.md`). Both the CLI and the Streamlit uploader resolve `\input{}`/`\include{}`
+automatically via `latex.resolve_includes` before running source-based checks — the CLI does it
+in `cli.py`, the Streamlit path in `ui.analyze_uploaded_resume`. `ats-check main.tex` works
+correctly with no extra flags since it's the sole file passed; in the Streamlit UI, select all
+of `main.tex` + `preamble.tex` + `sections/*.tex` together in the file picker (a single
+self-contained `.tex` file also still works) — otherwise source-based checks
+(`parse.unicode_mapping`, `layout.package.*`, the `source_sections`/`keywords.source_only`
+diagnostics below) will only see whichever one file was uploaded.
+
 **Exit codes:** 0 = all pass/warn, 1 = has failures, 2 = error (missing file, build failure, missing tools)
 
 ## Scoring model
@@ -111,9 +121,10 @@ api, rest, graphql, git, agile, scrum, leadership, communication.
 ## Data flow
 
 ```
-cli.py / ui.py → compile_latex() → extract_pdf_text() + read_pdf_info()
-               → run_checks(tex_source, extracted_text, pdf_info)
-               → AtsReport → render_console() / render_markdown() / write_json()
+cli.py:  resolve_includes(tex_path) → tex_source ────┐
+         compile_latex() → extract_pdf_text() + read_pdf_info()
+                                                       ├→ run_checks(tex_source, extracted_text, pdf_info)
+ui.py:   map_uploaded_tex_files() → resolve_includes() ┘  → AtsReport → render_console() / render_markdown() / write_json()
 ```
 
 Central function: `run_checks()` in `ats_resume_checker/checks.py`.
