@@ -6,13 +6,21 @@ Run locally with:
 
 from __future__ import annotations
 
+import io
 import json
+import zipfile
 
 from ats_resume_checker.checks import DEFAULT_KEYWORDS, AtsReport
 from ats_resume_checker.pdf_tools import PdfToolError
 from ats_resume_checker.report import render_markdown
 from ats_resume_checker.jd_tools import extract_keywords as _extract_jd_keywords, fetch_jd_from_url as _fetch_jd_url
-from ats_resume_checker.ui import analyze_uploaded_resume, parse_keywords, summarize_status_counts, top_fixes
+from ats_resume_checker.ui import (
+    analyze_uploaded_resume,
+    map_uploaded_tex_files,
+    parse_keywords,
+    summarize_status_counts,
+    top_fixes,
+)
 
 
 def main() -> None:
@@ -25,7 +33,7 @@ def main() -> None:
     # Persistent state across Streamlit reruns
     st.session_state.setdefault("ats_analysis", None)
     st.session_state.setdefault("agent_result", None)
-    st.session_state.setdefault("uploaded_tex_bytes", None)
+    st.session_state.setdefault("uploaded_tex_files", None)
     st.session_state.setdefault("uploaded_pdf_bytes", None)
     st.session_state.setdefault("uploaded_keywords", None)
     st.session_state.setdefault("uploaded_jd_keywords", None)
@@ -34,13 +42,18 @@ def main() -> None:
     with st.sidebar:
         st.header("Inputs")
         pdf_file = st.file_uploader("Resume PDF (.pdf) — required", type=["pdf"])
-        tex_file = st.file_uploader(
-            "LaTeX source (.tex) — optional",
+        tex_files_uploaded = st.file_uploader(
+            "LaTeX source files (.tex) — optional",
             type=["tex"],
+            accept_multiple_files=True,
             help=(
                 "Upload the LaTeX source for deeper checks: Unicode mapping, "
                 "risky package detection, and source-vs-PDF section comparison. "
-                "Leave empty to run in PDF-only mode."
+                "A single self-contained .tex file works. If your resume is split "
+                "across multiple files (main.tex + preamble.tex + files under "
+                "sections/, per this repo's CLAUDE.md), select all of them together "
+                "in the file picker — \\input{}/\\include{} references between them "
+                "are resolved automatically. Leave empty to run in PDF-only mode."
             ),
         )
         max_pages = st.number_input("Maximum page count", min_value=1, max_value=10, value=2, step=1)
@@ -67,12 +80,12 @@ def main() -> None:
         st.info("Upload a resume PDF to begin. A LaTeX source file is optional but enables deeper checks.")
         return
 
-    pdf_only_mode = tex_file is None
+    pdf_only_mode = not tex_files_uploaded
     if pdf_only_mode:
         st.info(
             "**PDF-only mode** — running without a LaTeX source. "
             "LaTeX-specific checks (`parse.unicode_mapping`, `layout.package.*`) are skipped. "
-            "Upload a `.tex` file alongside the PDF to enable them.",
+            "Upload `.tex` file(s) alongside the PDF to enable them.",
             icon="ℹ️",
         )
 
@@ -94,22 +107,28 @@ def main() -> None:
                 except ValueError as exc:
                     st.warning(f"Could not fetch JD from URL: {exc}. Proceeding without JD matching.")
 
+        tex_files = (
+            map_uploaded_tex_files([(f.name, f.getvalue()) for f in tex_files_uploaded])
+            if tex_files_uploaded
+            else None
+        )
+
         try:
             analysis = analyze_uploaded_resume(
-                tex_file.getvalue() if tex_file else None,
+                tex_files,
                 pdf_file.getvalue(),
                 max_pages=int(max_pages),
                 keywords=parse_keywords(raw_keywords),
                 jd_keywords=jd_keywords or None,
             )
             st.session_state.ats_analysis = analysis
-            st.session_state.uploaded_tex_bytes = tex_file.getvalue() if tex_file else None
+            st.session_state.uploaded_tex_files = tex_files
             st.session_state.uploaded_pdf_bytes = pdf_file.getvalue()
             st.session_state.uploaded_keywords = parse_keywords(raw_keywords)
             st.session_state.uploaded_jd_keywords = jd_keywords or None
             st.session_state.uploaded_jd_text = jd_text_resolved or None
         except UnicodeDecodeError:
-            st.error("Could not read the uploaded `.tex` file as UTF-8 text.")
+            st.error("Could not read one of the uploaded `.tex` files as UTF-8 text.")
             return
         except PdfToolError as exc:
             st.error(str(exc))
@@ -354,6 +373,14 @@ def _render_ai_section(st, max_pages: int) -> None:
             "(Model settings → n_ctx)"
         )
 
+    if not st.session_state.get("uploaded_tex_files"):
+        st.info(
+            "No `.tex` file was uploaded — the agent will **generate a brand-new resume from "
+            "scratch** using the `resume-writer` skill, working from your PDF's content, rather "
+            "than edit an existing one. This takes longer than a normal edit pass.",
+            icon="🆕",
+        )
+
     run_agent_button = st.button("Run AI Agent", type="primary")
 
     # Verbose tool output toggle — persisted in session state
@@ -374,7 +401,7 @@ def _render_ai_section(st, max_pages: int) -> None:
         error_holder: dict = {}
 
         # Read session state on the main Streamlit thread — threads cannot access it.
-        _tex_bytes = st.session_state.get("uploaded_tex_bytes")
+        _tex_files = st.session_state.get("uploaded_tex_files")
         _pdf_bytes = st.session_state.get("uploaded_pdf_bytes")
         _keywords = st.session_state.get("uploaded_keywords") or []
         _jd_keywords = st.session_state.get("uploaded_jd_keywords") or []
@@ -383,18 +410,12 @@ def _render_ai_section(st, max_pages: int) -> None:
         if not _pdf_bytes:
             st.error("Run the ATS check first to upload your files before using the AI agent.")
             return
-        if not _tex_bytes:
-            st.error(
-                "The AI agent requires a LaTeX source file (.tex) to edit. "
-                "Re-run the ATS check with a `.tex` file uploaded to enable the agent."
-            )
-            return
 
         def _run_in_thread() -> None:
             from ats_resume_checker.agent import run_improvement_agent
             try:
                 result_holder["v"] = run_improvement_agent(
-                    tex_bytes=_tex_bytes,
+                    tex_files=_tex_files or {},
                     pdf_bytes=_pdf_bytes,
                     max_iterations=max_iterations,
                     model=model,
@@ -544,15 +565,42 @@ def _render_agent_result(st, result) -> None:
             st.image(png_bytes, caption=f"Page {i + 1}", use_container_width=True)
 
     st.subheader("Download Improved Resume")
-    col_tex, col_pdf = st.columns(2)
+    final_tex_files = getattr(result, "final_tex_files", None) or {}
+    if final_tex_files:
+        col_tex, col_zip, col_pdf = st.columns(3)
+    else:
+        col_tex, col_pdf = st.columns(2)
+        col_zip = None
     with col_tex:
         st.download_button(
-            "Download improved .tex",
+            "Download improved .tex (flattened)",
             data=result.improved_tex.encode("utf-8"),
             file_name="resume_improved.tex",
             mime="text/plain",
             use_container_width=True,
+            help=(
+                "A single self-contained file with all \\input{}/\\include{} "
+                "references resolved inline — compiles on its own."
+            ),
         )
+    if final_tex_files:
+        with col_zip:
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                for rel_path, content in final_tex_files.items():
+                    zf.writestr(rel_path, content)
+            st.download_button(
+                "Download edited files (.zip)",
+                data=zip_buffer.getvalue(),
+                file_name="resume_edited_files.zip",
+                mime="application/zip",
+                use_container_width=True,
+                help=(
+                    "The actual files the agent edited (main.tex, preamble.tex, "
+                    "sections/*.tex — whichever were uploaded), preserving your "
+                    "split structure. Unzip over your repo to apply the changes."
+                ),
+            )
     with col_pdf:
         pdf_bytes = getattr(result, "pdf_bytes", b"")
         if pdf_bytes:

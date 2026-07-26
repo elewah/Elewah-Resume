@@ -132,8 +132,10 @@ def _run_agent(mock_sdk, mock_types, tex=FAKE_TEX, pdf=FAKE_PDF_BYTES,
             mock.patch.object(_agent_mod, "run_checks", return_value=fake_report),
             mock.patch.object(_agent_mod, "pdf_pages_to_png", return_value=[b"PNG"]),
         ):
+            tex_bytes = tex.encode() if isinstance(tex, str) else tex
+            tex_files = tex_bytes if isinstance(tex_bytes, dict) else {"main.tex": tex_bytes}
             return _agent_mod.run_improvement_agent(
-                tex_bytes=tex.encode() if isinstance(tex, str) else tex,
+                tex_files=tex_files,
                 pdf_bytes=pdf,
                 **kwargs,
             )
@@ -166,6 +168,56 @@ class AgentSdkTests(unittest.TestCase):
         result = _run_agent(mock_sdk, mock_types, tex=FAKE_TEX)
         self.assertIsInstance(result.improved_tex, str)
         self.assertIn("documentclass", result.improved_tex)
+
+    def test_split_tex_files_resolved_and_final_tex_files_populated(self):
+        """A main.tex + sections/*.tex upload should flatten correctly and report per-file state."""
+        split_tex = {
+            "main.tex": rb"\input{preamble}\begin{document}\input{sections/experience}\end{document}",
+            "preamble.tex": rb"\documentclass{article}",
+            "sections/experience.tex": rb"\section{Experience}\nSoftware Engineer at Acme.",
+        }
+        mock_sdk, mock_types = _make_sdk_mock()
+        result = _run_agent(mock_sdk, mock_types, tex=split_tex)
+
+        # improved_tex is the flattened, \input-resolved view — content from every file.
+        self.assertIn("documentclass", result.improved_tex)
+        self.assertIn("Experience", result.improved_tex)
+
+        # final_tex_files preserves the actual per-file split, keyed the same as the input.
+        self.assertEqual(set(result.final_tex_files), set(split_tex))
+        self.assertIn("Acme", result.final_tex_files["sections/experience.tex"])
+
+    def test_generation_mode_seeds_resume_writer_skill_not_entry_pdf(self):
+        """tex_files={} (no .tex uploaded) should trigger generation mode, not crash on an empty dict."""
+        import pathlib
+
+        mock_sdk, mock_types = _make_sdk_mock()
+        captured: dict = {}
+
+        def capturing_options(**kwargs):
+            captured.update(kwargs)
+            return mock.MagicMock()
+
+        mock_sdk.ClaudeAgentOptions = mock.MagicMock(side_effect=capturing_options)
+
+        result = _run_agent(mock_sdk, mock_types, tex={})
+
+        self.assertIsInstance(result, AgentResult)
+
+        # System prompt should carry the generation-mode block and point at the skill.
+        system_prompt = captured.get("system_prompt", "")
+        self.assertIn("Starting from scratch", system_prompt)
+        self.assertIn("resume_writer_skill/SKILL.md", system_prompt)
+        self.assertIn("non-interactive run", system_prompt)
+
+        # The sandbox should have the real skill copied in, plus the PDF as a stable reference —
+        # not pre-seeded as main.pdf, which would get silently overwritten by the agent's own compile.
+        workspace = pathlib.Path(result.session_dir) / "workspace"
+        self.assertTrue((workspace / "resume_writer_skill" / "SKILL.md").is_file())
+        self.assertTrue((workspace / "resume_writer_skill" / "assets" / "preamble.tex").is_file())
+        self.assertTrue((workspace / "original_resume.pdf").is_file())
+        self.assertTrue((workspace / "original_resume_text.txt").is_file())
+        self.assertFalse((workspace / "main.pdf").exists())
 
     def test_max_turns_scales_with_iterations(self):
         """max_turns passed to ClaudeAgentOptions should be max_iterations*8+5."""
@@ -237,7 +289,7 @@ class AgentSdkTests(unittest.TestCase):
             ):
                 with self.assertRaises((RuntimeError, ImportError, TypeError)):
                     _agent_mod.run_improvement_agent(
-                        tex_bytes=b"x",
+                        tex_files={"main.tex": b"x"},
                         pdf_bytes=b"y",
                     )
 

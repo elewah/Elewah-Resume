@@ -1,9 +1,23 @@
 """AI agent that iteratively improves a LaTeX resume for ATS compliance.
 
 Uses the Claude Agent SDK (claude-agent-sdk). The agent gets a workspace directory
-containing resume.tex and resume.pdf, and uses built-in Read/Edit/Write/Bash
-tools to fix ATS issues — running ats-check, latexmk, and pdftoppm as shell
-commands rather than through custom tool implementations.
+containing every uploaded .tex file (e.g. main.tex + preamble.tex + sections/*.tex,
+preserving that relative layout so \\input{}/\\include{} resolves) plus the PDF,
+and uses built-in Read/Edit/Write/Bash tools to fix ATS issues — running ats-check,
+latexmk, and pdftoppm as shell commands rather than through custom tool
+implementations. Whichever uploaded file is named main.tex is treated as the
+compile entry point; for a legacy single-file upload, that one file is the entry
+point instead.
+
+If no .tex files are uploaded at all ("generation mode" — tex_files={}), there's
+nothing to edit, so the workspace is seeded differently: the uploaded PDF is kept
+as original_resume.pdf (a stable reference — not overwritten by the agent's own
+compile), its extracted text as original_resume_text.txt, and the actual
+.claude/skills/resume-writer/ skill directory is copied in as resume_writer_skill/
+so the sandboxed agent can read and follow it — skills aren't otherwise
+discoverable inside this SDK sandbox the way they are in a real Claude Code
+session. The system prompt tells it to run that skill first, then fall into the
+normal compile/check/refine loop below once main.tex exists.
 
 Requires:
   pip install -e ".[agent]"   # installs claude-agent-sdk
@@ -23,6 +37,7 @@ from pathlib import Path
 from typing import Any
 
 from .checks import AtsReport, run_checks
+from .latex import resolve_includes
 from .pdf_to_png import pdf_pages_to_png
 from .pdf_tools import PdfToolError, extract_pdf_text, read_pdf_info
 
@@ -30,30 +45,68 @@ from .pdf_tools import PdfToolError, extract_pdf_text, read_pdf_info
 # System prompt
 # ---------------------------------------------------------------------------
 
-_SYSTEM_PROMPT = """You are an expert LaTeX resume editor specializing in ATS (Applicant Tracking System) compliance.
+_SECTION_FILE_HINTS = {
+    "header.tex": "name, contact line, links",
+    "summary.tex": "Summary section",
+    "skills.tex": "Technical Skills section",
+    "experience.tex": "Professional Experience section (job bullets)",
+    "education.tex": "Education section",
+    "projects.tex": "Projects section",
+}
 
-Your goal is to improve the resume's ATS score by editing resume.tex to fix failing and warning checks. Do not change the candidate's actual content, credentials, or claims.
 
+def _describe_file(rel_path: str) -> str:
+    basename = Path(rel_path).name
+    if basename in _SECTION_FILE_HINTS:
+        return f"{rel_path} — {_SECTION_FILE_HINTS[basename]}"
+    if basename == "preamble.tex":
+        return f"{rel_path} — packages, colors, macros, spacing (styling only, no resume content)"
+    return rel_path
+
+
+def _file_map_section(entry_tex: str, other_files: list[str]) -> str:
+    """Describe the split-file layout to the agent, or "" for a single-file upload."""
+    if not other_files:
+        return ""
+    listing = "\n".join(f"- {_describe_file(f)}" for f in sorted(other_files))
+    return (
+        f"\n## File map\n"
+        f"{entry_tex} is a thin shell — it only contains \\input{{...}} lines. "
+        f"The actual resume content lives here:\n{listing}\n\n"
+        f"Open and edit only the ONE file that matches your fix — don't load the whole "
+        f"resume for a small change, and don't touch {entry_tex} itself for a content edit. "
+        f"Only touch a preamble file for styling/macro/package changes, never for content.\n"
+    )
+
+
+_SYSTEM_PROMPT_TEMPLATE = """You are an expert LaTeX resume editor specializing in ATS (Applicant Tracking System) compliance.
+
+Your goal is to improve the resume's ATS score by editing <<ENTRY_TEX>> — or, if it's a thin shell, the specific file it \\input{}s that matches the fix (see File map below) — to fix failing and warning checks. Do not change the candidate's actual content, credentials, or claims.
+<<STARTING_FROM_SCRATCH>>
+<<FILE_MAP>>
 ## Workflow
 1. Run the ATS checker to see current issues:
-     ats-check resume.tex --no-compile --pdf resume.pdf --json report.json
-   Then read report.json to see score, failing checks, and suggested fixes.
+     ats-check <<ENTRY_TEX>> --no-compile --pdf <<ENTRY_PDF>> --json report.json
+   Then read report.json to see score, failing checks, and suggested fixes. This
+   resolves \\input{}/\\include{} automatically, so it reflects the full resume
+   even if <<ENTRY_TEX>> itself is just a shell.
 
-2. Read resume.tex to understand the source.
+2. Read <<ENTRY_TEX>> to understand the source, then open the specific file that
+   contains what you need to fix (see File map below if the resume is split).
 
 3. Fix the highest-impact issues first: "fail" checks cost 15 pts each, "warn" checks cost 5 pts each.
    Use the Edit tool for targeted changes. Use Write if you need to rewrite a section.
 
 4. After editing, recompile:
-     latexmk -pdf -interaction=nonstopmode resume.tex
+     latexmk -pdf -interaction=nonstopmode <<ENTRY_TEX>>
 
 5. Re-check to confirm improvement:
-     ats-check resume.tex --no-compile --pdf resume.pdf
+     ats-check <<ENTRY_TEX>> --no-compile --pdf <<ENTRY_PDF>>
 
 6. Repeat until the score is maximized or you cannot improve further.
 
 7. Visual check (optional but recommended):
-     pdftoppm -png -r 150 resume.pdf page
+     pdftoppm -png -r 150 <<ENTRY_PDF>> page
 
 If ats-check is not on PATH, use: python -m ats_resume_checker.cli <args>
 
@@ -67,7 +120,7 @@ If ats-check is not on PATH, use: python -m ats_resume_checker.cli <args>
 ## Common ATS Fixes by Check ID
 
 **parse.unicode_mapping** (WARN → PASS)
-Add to preamble before \\begin{document}:
+Add to the preamble (preamble.tex if the resume is split) before \\begin{document}:
   \\input{glyphtounicode}
   \\pdfgentounicode=1
 
@@ -96,7 +149,8 @@ After you have maximised the ATS score, run this verification pass:
 
   python -c "
 import json, pathlib
-tex = pathlib.Path('resume.tex').read_text().lower()
+from ats_resume_checker.latex import resolve_includes
+tex = resolve_includes(pathlib.Path('<<ENTRY_TEX>>')).lower()
 report = json.loads(pathlib.Path('report.json').read_text())
 jd = report.get('jd_match') or {}
 missing = jd.get('missing', [])
@@ -110,6 +164,39 @@ print(f'Coverage: {len(jd.get(\"matched\",[]))+len(found_now)} / {jd.get(\"total
 Report the output so the user can see which terms are covered and which are not.
 Do NOT add keywords that are not truthfully represented in the candidate's experience.
 """
+
+
+def _starting_from_scratch_section(entry_tex: str) -> str:
+    return (
+        f"\n## Starting from scratch\n"
+        f"No {entry_tex} exists yet — only a PDF. Before anything else:\n\n"
+        f"1. Read resume_writer_skill/SKILL.md in full and follow it to generate {entry_tex}, "
+        f"preamble.tex, and sections/*.tex from the candidate's real content. Their current "
+        f"resume is available as original_resume.pdf (the PDF they uploaded) and "
+        f"original_resume_text.txt (its extracted text, for convenience). Use "
+        f"resume_writer_skill/assets/ as your templates exactly as SKILL.md instructs — copy "
+        f"preamble.tex verbatim, follow the section examples' structure.\n\n"
+        f"2. This is a non-interactive run: you cannot ask the candidate follow-up questions. "
+        f"If a detail is genuinely missing or ambiguous in their content (not just awkwardly "
+        f"formatted), leave it out rather than inventing it, and note the gap in your final "
+        f"summary — don't stop and wait for an answer that will never come.\n\n"
+        f"Once {entry_tex} and its sections exist, continue with the workflow below to compile, "
+        f"check, and refine.\n"
+    )
+
+
+def _build_system_prompt(
+    entry_tex: str, entry_pdf: str, other_files: list[str], generation_mode: bool = False
+) -> str:
+    prompt = _SYSTEM_PROMPT_TEMPLATE.replace("<<ENTRY_TEX>>", entry_tex).replace("<<ENTRY_PDF>>", entry_pdf)
+    if generation_mode:
+        prompt = prompt.replace("<<STARTING_FROM_SCRATCH>>", _starting_from_scratch_section(entry_tex))
+        # other_files is empty in generation mode (nothing exists yet) — describe the target
+        # structure being created so the file map still renders, instead of a second code path.
+        target_files = ["preamble.tex"] + [f"sections/{name}" for name in _SECTION_FILE_HINTS]
+        return prompt.replace("<<FILE_MAP>>", _file_map_section(entry_tex, target_files))
+    prompt = prompt.replace("<<STARTING_FROM_SCRATCH>>", "")
+    return prompt.replace("<<FILE_MAP>>", _file_map_section(entry_tex, other_files))
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -165,6 +252,12 @@ class AgentResult:
     session_dir: str | None = None
     usage: UsageSummary = field(default_factory=UsageSummary)
     pdf_bytes: bytes = b""
+    # Actual per-file content after the run, keyed by the same relative paths
+    # passed in via tex_files (e.g. "main.tex", "preamble.tex",
+    # "sections/experience.tex") — unlike improved_tex (a single flattened,
+    # \input-resolved string), this preserves which file(s) the agent
+    # actually touched, for re-applying the edits to a split repo.
+    final_tex_files: dict[str, str] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -185,11 +278,20 @@ def _summarize_input(inp: dict) -> str:
     return json.dumps(inp, ensure_ascii=False)[:120]
 
 
+def _write_tex_files(base_dir: Path, tex_files: dict[str, bytes]) -> None:
+    """Write each relative-path -> bytes entry under base_dir, creating subdirs as needed."""
+    for rel_path, content in tex_files.items():
+        target = base_dir / rel_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+
+
 def _init_session(
     session_base: Path,
     started_at: datetime,
-    tex_bytes: bytes,
+    tex_files: dict[str, bytes],
     pdf_bytes: bytes,
+    entry_pdf: str,
     initial_report: AtsReport,
     keywords: list[str],
     jd_keywords: list[str],
@@ -197,8 +299,19 @@ def _init_session(
     model: str,
     max_turns: int,
     prompt: str,
+    generation_mode: bool = False,
+    extracted_text: str = "",
 ) -> tuple[Path, Path] | tuple[None, None]:
-    """Create session dir + workspace/, write all inputs, return (session_dir, workspace_dir)."""
+    """Create session dir + workspace/, write all inputs, return (session_dir, workspace_dir).
+
+    In generation_mode (no tex_files — nothing to edit yet), the uploaded PDF is written as
+    original_resume.pdf rather than as entry_pdf: entry_pdf ("main.pdf") doesn't exist until the
+    agent compiles the main.tex it's about to create, and pre-seeding it with the uploaded bytes
+    would just get silently overwritten by that first compile, destroying the only reference copy
+    of the candidate's actual content. The resume_writer_skill/ copy is what lets the sandboxed
+    agent follow the same skill an interactive Claude Code session would use for this — it has no
+    other way to discover it.
+    """
     try:
         timestamp = started_at.strftime("%Y%m%d_%H%M%S")
         session_dir = session_base / f"{timestamp}_resume"
@@ -207,8 +320,8 @@ def _init_session(
         # inputs/ — everything the agent was given (read-only reference copies)
         inputs_dir = session_dir / "inputs"
         inputs_dir.mkdir(exist_ok=True)
-        (inputs_dir / "resume.tex").write_bytes(tex_bytes)
-        (inputs_dir / "resume.pdf").write_bytes(pdf_bytes)
+        _write_tex_files(inputs_dir, tex_files)
+        (inputs_dir / entry_pdf).write_bytes(pdf_bytes)
         if keywords:
             (inputs_dir / "keywords.txt").write_text("\n".join(keywords), encoding="utf-8")
         if jd_text:
@@ -223,8 +336,17 @@ def _init_session(
         # workspace/ — the agent's live working directory
         workspace_dir = session_dir / "workspace"
         workspace_dir.mkdir(exist_ok=True)
-        (workspace_dir / "resume.tex").write_bytes(tex_bytes)
-        (workspace_dir / "resume.pdf").write_bytes(pdf_bytes)
+        _write_tex_files(workspace_dir, tex_files)
+        if generation_mode:
+            (workspace_dir / "original_resume.pdf").write_bytes(pdf_bytes)
+            (workspace_dir / "original_resume_text.txt").write_text(extracted_text, encoding="utf-8")
+            # Existence of skill_src is validated by the caller before _init_session runs — a
+            # failure here would otherwise be swallowed by the except Exception below and silently
+            # fall back to a broken (non-generation-mode) workspace instead of surfacing clearly.
+            skill_src = Path(__file__).parent.parent / ".claude" / "skills" / "resume-writer"
+            shutil.copytree(skill_src, workspace_dir / "resume_writer_skill")
+        else:
+            (workspace_dir / entry_pdf).write_bytes(pdf_bytes)
 
         # session.json — partial, updated at completion
         (session_dir / "session.json").write_text(
@@ -249,10 +371,12 @@ def _init_session(
 def _finalize_session(
     session_dir: Path,
     workspace_dir: Path,
+    entry_pdf: str,
     final_report: AtsReport | None,
     initial_score: int,
     events: list[AgentEvent],
     final_tex: str,
+    final_tex_files: dict[str, str],
     usage: UsageSummary,
     iter_count: int,
 ) -> None:
@@ -277,11 +401,21 @@ def _finalize_session(
                 json.dumps(final_report.to_dict(), indent=2), encoding="utf-8"
             )
 
-        # improved_resume.tex at session root (convenience copy)
+        # improved_resume.tex at session root — a single flattened, \input-resolved
+        # convenience copy, useful for a quick read even when the resume is split.
         (session_dir / "improved_resume.tex").write_text(final_tex, encoding="utf-8")
 
+        # final_files/ — the actual per-file state the agent left behind, preserving
+        # the original relative layout (main.tex, preamble.tex, sections/*.tex, ...).
+        if final_tex_files:
+            final_files_dir = session_dir / "final_files"
+            for rel_path, content in final_tex_files.items():
+                target = final_files_dir / rel_path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(content, encoding="utf-8")
+
         # final_resume.pdf at session root (copy from workspace)
-        workspace_pdf = workspace_dir / "resume.pdf"
+        workspace_pdf = workspace_dir / entry_pdf
         if workspace_pdf.exists():
             shutil.copy2(workspace_pdf, session_dir / "final_resume.pdf")
 
@@ -312,7 +446,7 @@ def _finalize_session(
 
 
 async def _run_agent_async(
-    tex_bytes: bytes,
+    tex_files: dict[str, bytes],
     pdf_bytes: bytes,
     max_turns: int,
     model: str,
@@ -346,16 +480,31 @@ async def _run_agent_async(
 
     started_at = datetime.now()
 
-    # Compute initial score (needs a temp PDF on disk for pdftotext).
-    # We write to a throwaway temp file only for this pre-flight check;
+    generation_mode = not tex_files
+    entry_tex = "main.tex" if generation_mode or "main.tex" in tex_files else next(iter(tex_files))
+    entry_pdf = f"{Path(entry_tex).stem}.pdf"
+    other_files = sorted(f for f in tex_files if f != entry_tex)
+
+    resume_writer_skill_dir = Path(__file__).parent.parent / ".claude" / "skills" / "resume-writer"
+    if generation_mode and not resume_writer_skill_dir.is_dir():
+        raise RuntimeError(
+            f"No .tex file was uploaded, so generating one from scratch requires the "
+            f"resume-writer skill, which was not found at {resume_writer_skill_dir}. "
+            f"Upload a .tex file to edit instead, or restore that skill directory."
+        )
+
+    # Compute initial score (needs a temp PDF on disk for pdftotext, and the
+    # full file set on disk for resolve_includes to follow \input/\include).
+    # We write to a throwaway temp dir only for this pre-flight check;
     # the real workspace is created by _init_session below.
     import tempfile
     with tempfile.TemporaryDirectory() as _pre:
         _pre_path = Path(_pre)
-        (_pre_path / "resume.pdf").write_bytes(pdf_bytes)
-        initial_tex = tex_bytes.decode("utf-8")
-        extracted = extract_pdf_text(_pre_path / "resume.pdf")
-        pdf_info = read_pdf_info(_pre_path / "resume.pdf")
+        (_pre_path / "preflight.pdf").write_bytes(pdf_bytes)
+        _write_tex_files(_pre_path, tex_files)
+        initial_tex = resolve_includes(_pre_path / entry_tex)
+        extracted = extract_pdf_text(_pre_path / "preflight.pdf")
+        pdf_info = read_pdf_info(_pre_path / "preflight.pdf")
 
     initial_report = run_checks(
         initial_tex, extracted, pdf_info,
@@ -397,22 +546,38 @@ async def _run_agent_async(
             "NEVER invent or fabricate experience."
         )
 
-    prompt = (
-        f"resume.tex currently scores {initial_report.score}/100.\n"
-        f"Failing checks (−15 pts each): {failing}\n"
-        f"Warning checks (−5 pts each): {warning}\n"
-        f"{jd_section}\n"
-        "Improve the score by editing resume.tex. Follow the workflow in your instructions.\n"
-        "The compiled PDF is already at resume.pdf — use --no-compile for the first ats-check.\n"
-        "Do not change any factual content (employer names, dates, credentials, skills)."
-    )
+    if generation_mode:
+        prompt = (
+            f"No LaTeX resume exists yet for this candidate — only a PDF. In PDF-only mode it "
+            f"currently scores {initial_report.score}/100.\n"
+            f"{jd_section}\n"
+            f"Generate {entry_tex} + preamble.tex + sections/*.tex from the candidate's real "
+            f"content — see resume_writer_skill/SKILL.md, and original_resume.pdf / "
+            f"original_resume_text.txt for their current resume. Then continue with the normal "
+            f"workflow in your instructions to compile, check, and refine.\n"
+            "Do not invent any factual content (employer names, dates, credentials, skills) "
+            "beyond what's in their PDF."
+        )
+    else:
+        prompt = (
+            f"{entry_tex} currently scores {initial_report.score}/100.\n"
+            f"Failing checks (−15 pts each): {failing}\n"
+            f"Warning checks (−5 pts each): {warning}\n"
+            f"{jd_section}\n"
+            f"Improve the score by editing the file(s) that need it — see the File map in your "
+            f"instructions if the resume is split across multiple files. Follow the workflow in "
+            f"your instructions.\n"
+            f"The compiled PDF is already at {entry_pdf} — use --no-compile for the first ats-check.\n"
+            "Do not change any factual content (employer names, dates, credentials, skills)."
+        )
 
     # Create the session directory NOW so all inputs are on disk before the agent starts.
     session_dir_path, workspace_dir = _init_session(
         session_base=session_base,
         started_at=started_at,
-        tex_bytes=tex_bytes,
+        tex_files=tex_files,
         pdf_bytes=pdf_bytes,
+        entry_pdf=entry_pdf,
         initial_report=initial_report,
         keywords=keywords,
         jd_keywords=jd_keywords,
@@ -420,6 +585,8 @@ async def _run_agent_async(
         model=model,
         max_turns=max_turns,
         prompt=prompt,
+        generation_mode=generation_mode,
+        extracted_text=extracted,
     )
 
     # If session init failed, fall back to a temp directory so the agent can still run.
@@ -427,14 +594,19 @@ async def _run_agent_async(
         import tempfile as _tf
         _fallback_tmp = _tf.mkdtemp()
         workspace_dir = Path(_fallback_tmp)
-        (workspace_dir / "resume.tex").write_bytes(tex_bytes)
-        (workspace_dir / "resume.pdf").write_bytes(pdf_bytes)
+        _write_tex_files(workspace_dir, tex_files)
+        if generation_mode:
+            (workspace_dir / "original_resume.pdf").write_bytes(pdf_bytes)
+            (workspace_dir / "original_resume_text.txt").write_text(extracted, encoding="utf-8")
+            shutil.copytree(resume_writer_skill_dir, workspace_dir / "resume_writer_skill")
+        else:
+            (workspace_dir / entry_pdf).write_bytes(pdf_bytes)
 
-    tex_path = workspace_dir / "resume.tex"
-    pdf_path = workspace_dir / "resume.pdf"
+    tex_path = workspace_dir / entry_tex
+    pdf_path = workspace_dir / entry_pdf
 
     options = ClaudeAgentOptions(
-        system_prompt=_SYSTEM_PROMPT,
+        system_prompt=_build_system_prompt(entry_tex, entry_pdf, other_files, generation_mode=generation_mode),
         allowed_tools=["Read", "Edit", "Write", "Bash"],
         permission_mode="acceptEdits",
         cwd=str(workspace_dir),
@@ -592,8 +764,18 @@ async def _run_agent_async(
         progress_messages.append(note)
         events.append(AgentEvent(kind="text", content=note, data={}))
 
-    # Read final state from workspace
-    final_tex = tex_path.read_text(encoding="utf-8") if tex_path.exists() else initial_tex
+    # Read final state from workspace. final_tex is the flattened, \input-resolved
+    # text (matches what ats-check itself sees); final_tex_files preserves the
+    # actual per-file content so edits can be reapplied to a split repo.
+    final_tex = resolve_includes(tex_path) if tex_path.exists() else initial_tex
+    final_tex_files: dict[str, str] = {}
+    for rel_path in tex_files:
+        file_path = workspace_dir / rel_path
+        if file_path.exists():
+            try:
+                final_tex_files[rel_path] = file_path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                pass
 
     final_report: AtsReport | None = None
     if pdf_path.exists():
@@ -624,10 +806,12 @@ async def _run_agent_async(
         _finalize_session(
             session_dir=session_dir_path,
             workspace_dir=workspace_dir,
+            entry_pdf=entry_pdf,
             final_report=final_report,
             initial_score=initial_report.score,
             events=events,
             final_tex=final_tex,
+            final_tex_files=final_tex_files,
             usage=usage,
             iter_count=iter_count,
         )
@@ -643,6 +827,7 @@ async def _run_agent_async(
         session_dir=str(session_dir_path) if session_dir_path else None,
         pdf_bytes=final_pdf_bytes,
         usage=usage,
+        final_tex_files=final_tex_files,
     )
 
 
@@ -652,7 +837,7 @@ async def _run_agent_async(
 
 
 def run_improvement_agent(
-    tex_bytes: bytes,
+    tex_files: dict[str, bytes],
     pdf_bytes: bytes,
     max_iterations: int = 3,
     model: str = "claude-sonnet-4-6",
@@ -670,6 +855,20 @@ def run_improvement_agent(
     message_callback: Callable[[str | AgentEvent], None] | None = None,
 ) -> AgentResult:
     """Run the Claude Agent SDK resume improvement agent synchronously.
+
+    ``tex_files`` maps relative path -> content, e.g.
+    ``{"main.tex": b"...", "preamble.tex": b"...", "sections/experience.tex": b"..."}``
+    (build it with ``ui.map_uploaded_tex_files``) — every file is written into the
+    agent's sandbox preserving that layout, so \\input{}/\\include{} resolves there
+    just as it would in the real repo. Whichever key is "main.tex" is treated as
+    the compile entry point; for a legacy single-file upload, that one file is.
+
+    Pass ``tex_files={}`` for **generation mode**: no existing resume to edit, only
+    ``pdf_bytes``. The sandbox is seeded with the ``resume-writer`` skill instead,
+    and the agent builds ``main.tex`` from scratch from the PDF's content before
+    falling into the normal compile/check/refine loop. See this module's docstring
+    for how that sandbox differs from the editing case. (Callers holding a possibly-
+    ``None`` value, e.g. from UI session state, should coerce it to ``{}`` first.)
 
     Provider selection (mutually exclusive):
     - Default: claude CLI uses its own auth (claude.ai subscription)
@@ -691,7 +890,7 @@ def run_improvement_agent(
         try:
             result_holder["v"] = asyncio.run(
                 _run_agent_async(
-                    tex_bytes=tex_bytes,
+                    tex_files=tex_files,
                     pdf_bytes=pdf_bytes,
                     max_turns=max_turns,
                     model=model,
